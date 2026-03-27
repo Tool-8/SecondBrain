@@ -1,0 +1,21 @@
+services:
+  app:
+    environment:
+      APP_ENV: local
+      XDEBUG_MODE: off
+
+  vite:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /var/www/html
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "${VITE_PORT:-5173}:5173"
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - app
