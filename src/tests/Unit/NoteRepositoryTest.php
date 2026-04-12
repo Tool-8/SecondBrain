@@ -90,14 +90,20 @@
 
         public function test_lists_notes()
         {
-            $this->repo->create('First', 'A');
-            $this->repo->create('Second', 'B');
+            $note1 = $this->repo->create('First', 'A');
+            $note2 = $this->repo->create('Second', 'B');
 
             $list = $this->repo->list();
 
             $this->assertCount(2, $list);
-            $this->assertArrayHasKey('id', $list[0]);
-            $this->assertArrayHasKey('title', $list[0]);
+            $this->assertEquals($list[0]["id"], $note1["id"]);
+            $this->assertEquals($list[0]["title"], "First");
+            $this->assertEquals($list[0]["created_at"], $note1["created_at"]);
+            $this->assertEquals($list[0]["updated_at"], $note1["updated_at"]);
+            $this->assertEquals($list[1]["id"], $note2["id"]);
+            $this->assertEquals($list[1]["title"], "Second");
+            $this->assertEquals($list[1]["created_at"], $note2["created_at"]);
+            $this->assertEquals($list[1]["updated_at"], $note2["updated_at"]);
         }
 
         public function test_orders_notes_by_updated_at_desc()
@@ -162,7 +168,7 @@
 
             $note = $this->repo->get($id);
 
-            $this->assertStringStartsWith('Note ', $note['title']);
+            $this->assertEquals('Note ' . substr($id, 0, 8), $note['title']);
         }
 
         public function test_parses_front_matter_correctly()
