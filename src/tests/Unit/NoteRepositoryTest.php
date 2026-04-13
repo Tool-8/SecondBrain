@@ -6,6 +6,7 @@
     use Illuminate\Support\Str;
     use RuntimeException;
     use Tests\TestCase;
+    use Mockery;
 
     class NoteRepositoryTest extends TestCase {
         private NoteRepository $repo;
@@ -84,6 +85,20 @@
         {
             $this->expectException(RuntimeException::class);
             $this->expectExceptionMessage('NOT_FOUND');
+
+            $this->repo->delete((string) Str::uuid());
+        }
+
+        public function test_throws_if_delete_failed_on_found_note()
+        {
+            $diskMock = Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class);
+            $diskMock->shouldReceive('exists')->twice()->andReturn(true);
+            $diskMock->shouldReceive('delete')->once()->andReturn(false);
+
+            Storage::shouldReceive('disk')->times(3)->andReturn($diskMock);
+
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('DELETE_FAILED');
 
             $this->repo->delete((string) Str::uuid());
         }

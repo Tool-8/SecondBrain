@@ -143,8 +143,10 @@
             if (!Storage::disk('local')->exists($path)) {
                 throw new RuntimeException('NOT_FOUND');
             }
-
-            Storage::disk('local')->delete($path);
+            
+            if (!Storage::disk('local')->delete($path)) {
+                throw new RuntimeException("DELETE_FAILED");
+            }
         }
 
         private function ensureDir(): void

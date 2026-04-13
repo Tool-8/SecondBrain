@@ -140,7 +140,9 @@
                 ->willReturn(false); 
 
             $this->repository
+                ->expects($this->once())
                 ->method('update')
+                ->with('abc', 'Stesso titolo', 'Contenuto')
                 ->willReturn($expected);
 
             $result = $this->service->update('abc', 'Stesso titolo', 'Contenuto');
