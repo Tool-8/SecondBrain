@@ -6,6 +6,7 @@
     use Illuminate\Support\Str;
     use RuntimeException;
     use Tests\TestCase;
+    use Mockery;
 
     class NoteRepositoryTest extends TestCase {
         private NoteRepository $repo;
@@ -88,22 +89,37 @@
             $this->repo->delete((string) Str::uuid());
         }
 
+        public function test_throws_if_delete_failed_on_found_note()
+        {
+            $diskMock = Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class);
+            $diskMock->shouldReceive('exists')->twice()->andReturn(true);
+            $diskMock->shouldReceive('delete')->once()->andReturn(false);
+
+            Storage::shouldReceive('disk')->times(3)->andReturn($diskMock);
+
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('DELETE_FAILED');
+
+            $this->repo->delete((string) Str::uuid());
+        }
+
         public function test_lists_notes()
         {
             $note1 = $this->repo->create('First', 'A');
+            sleep(1);
             $note2 = $this->repo->create('Second', 'B');
 
             $list = $this->repo->list();
 
             $this->assertCount(2, $list);
-            $this->assertEquals($list[0]["id"], $note1["id"]);
-            $this->assertEquals($list[0]["title"], "First");
-            $this->assertEquals($list[0]["created_at"], $note1["created_at"]);
-            $this->assertEquals($list[0]["updated_at"], $note1["updated_at"]);
-            $this->assertEquals($list[1]["id"], $note2["id"]);
-            $this->assertEquals($list[1]["title"], "Second");
-            $this->assertEquals($list[1]["created_at"], $note2["created_at"]);
-            $this->assertEquals($list[1]["updated_at"], $note2["updated_at"]);
+            $this->assertEquals($list[0]["id"], $note2["id"]);
+            $this->assertEquals($list[0]["title"], "Second");
+            $this->assertEquals($list[0]["created_at"], $note2["created_at"]);
+            $this->assertEquals($list[0]["updated_at"], $note2["updated_at"]);
+            $this->assertEquals($list[1]["id"], $note1["id"]);
+            $this->assertEquals($list[1]["title"], "First");
+            $this->assertEquals($list[1]["created_at"], $note1["created_at"]);
+            $this->assertEquals($list[1]["updated_at"], $note1["updated_at"]);
         }
 
         public function test_orders_notes_by_updated_at_desc()
