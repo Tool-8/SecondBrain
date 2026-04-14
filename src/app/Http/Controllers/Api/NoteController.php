@@ -76,8 +76,8 @@
             return match ($e->getMessage()) {
                 'NOT_FOUND'     => response()->json(['message' => 'Note not found'], 404),
                 'INVALID_ID'    => response()->json(['message' => 'Invalid note id'], 400),
-                'TITLE_IN_USE'  => response()->json(['message' => 'Titolo già utilizzato'], 409),
-                'DELETE_FAILED' => response()->json(['message' => 'Eliminazione fallita'], 500),
+                'TITLE_IN_USE'  => response()->json(['message' => 'Title already used'], 409),
+                'DELETE_FAILED' => response()->json(['message' => 'Failed to delete'], 500),
                 default         => response()->json(['message' => 'Server error'], 500),
             };
         }

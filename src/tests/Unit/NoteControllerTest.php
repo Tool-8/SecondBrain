@@ -47,6 +47,7 @@
 
             $response = $this->controller->index();
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(200, $response->getStatusCode());
             $this->assertSame([], $response->getData(true));
         }
@@ -62,6 +63,7 @@
 
             $response = $this->controller->show('abc');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(200, $response->getStatusCode());
             $this->assertSame($note, $response->getData(true));
         }
@@ -73,6 +75,7 @@
 
             $response = $this->controller->show('missing-id');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(404, $response->getStatusCode());
             $this->assertSame('Note not found', $response->getData(true)['message']);
         }
@@ -84,6 +87,7 @@
 
             $response = $this->controller->show('!!!');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(400, $response->getStatusCode());
             $this->assertSame('Invalid note id', $response->getData(true)['message']);
         }
@@ -104,22 +108,27 @@
 
             $response = $this->controller->store($request);
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(201, $response->getStatusCode());
             $this->assertSame($created, $response->getData(true));
         }
 
         public function test_store_uses_empty_string_when_content_md_is_absent(): void {
+            $emptyNote = ['id' => '1', 'title' => 'Only Title', 'content_md' => ''];
+            
             $this->noteService
                 ->expects($this->once())
                 ->method('create')
                 ->with('Only Title', '')
-                ->willReturn(['id' => '1', 'title' => 'Only Title', 'content_md' => '']);
+                ->willReturn($emptyNote);
 
             $request = Request::create('/notes', 'POST', ['title' => 'Only Title']);
 
             $response = $this->controller->store($request);
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(201, $response->getStatusCode());
+            $this->assertSame($emptyNote, $response->getData(true));
         }
 
         public function test_store_returns_409_when_title_in_use(): void {
@@ -134,8 +143,9 @@
 
             $response = $this->controller->store($request);
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(409, $response->getStatusCode());
-            $this->assertSame('Titolo già utilizzato', $response->getData(true)['message']);
+            $this->assertSame('Title already used', $response->getData(true)['message']);
         }
 
         public function test_update_returns_200_with_updated_note(): void {
@@ -154,6 +164,7 @@
 
             $response = $this->controller->update($request, '1');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(200, $response->getStatusCode());
             $this->assertSame($updated, $response->getData(true));
         }
@@ -170,7 +181,10 @@
 
             $response = $this->controller->update($request, '999');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(404, $response->getStatusCode());
+            $this->assertSame('Note not found', $response->getData(true)['message']);
+
         }
 
         public function test_update_returns_409_when_title_in_use(): void {
@@ -185,8 +199,9 @@
 
             $response = $this->controller->update($request, '1');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(409, $response->getStatusCode());
-            $this->assertSame('Titolo già utilizzato', $response->getData(true)['message']);
+            $this->assertSame('Title already used', $response->getData(true)['message']);
         }
 
         public function test_update_returns_400_when_invalid_id(): void {
@@ -201,7 +216,9 @@
 
             $response = $this->controller->update($request, '@@');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(400, $response->getStatusCode());
+            $this->assertSame('Invalid note id', $response->getData(true)['message']);
         }
 
         public function test_destroy_returns_204_on_success(): void {
@@ -212,6 +229,7 @@
 
             $response = $this->controller->destroy('abc');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(204, $response->getStatusCode());
         }
 
@@ -222,6 +240,7 @@
 
             $response = $this->controller->destroy('ghost');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(404, $response->getStatusCode());
             $this->assertSame('Note not found', $response->getData(true)['message']);
         }
@@ -233,8 +252,9 @@
 
             $response = $this->controller->destroy('1');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(500, $response->getStatusCode());
-            $this->assertSame('Eliminazione fallita', $response->getData(true)['message']);
+            $this->assertSame('Failed to delete', $response->getData(true)['message']);
         }
 
         public function test_destroy_returns_400_when_invalid_id(): void {
@@ -244,6 +264,7 @@
 
             $response = $this->controller->destroy('!!!');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(400, $response->getStatusCode());
             $this->assertSame('Invalid note id', $response->getData(true)['message']);
         }
@@ -255,6 +276,7 @@
 
             $response = $this->controller->show('1');
 
+            $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(500, $response->getStatusCode());
             $this->assertSame('Server error', $response->getData(true)['message']);
         }
