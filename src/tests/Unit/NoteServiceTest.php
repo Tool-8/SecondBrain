@@ -195,5 +195,16 @@
 
             $this->service->delete('id-non-valido');
         }
+        
+        public function test_delete_propagates_delete_failed_exception(): void {
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('DELETE_FAILED');
+
+            $this->repository
+                ->method('delete')
+                ->willThrowException(new RuntimeException('DELETE_FAILED'));
+
+            $this->service->delete('abc');
+        }
     }
 ?>
