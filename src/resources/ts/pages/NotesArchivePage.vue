@@ -1,0 +1,42 @@
+<script setup lang="ts">
+import NoteArchiveCard from '@/components/NoteArchiveCard.vue';
+
+interface Note {
+    name: string;
+    last_edit: string;
+    creation: string;
+}
+
+const notes: Note[] =  [
+    { name: 'Nota 1', last_edit: '10/10/2010', creation: 'ieri' },
+    { name: 'Nota 2', last_edit: '10/10/2010', creation: 'ieri' },
+    { name: 'Nota 3', last_edit: '10/10/2010', creation: 'ieri' },    
+]
+
+</script>
+
+<template>
+   <h1 class="font-bold text-3xl pb-2">Archivio note</h1>
+    
+   <div class="pt-5">
+       <label for="Search">
+           <div class="relative group">
+               <span class="absolute inset-y-0 left-1 grid w-8 place-content-center">
+                   <button type="button" aria-label="Submit" class="rounded-full p-1.5 text-gray-700 transition-colors hover:bg-gray-100">
+                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 group-focus-within:text-blue-500 dark:text-neutral-700">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
+                       </svg>
+                   </button>
+               </span>
+               
+               <input type="text" id="Search" class="py-2 pl-8 w-full rounded border border-gray-200 pe-10 shadow-xs sm:text-sm focus:outline-blue-400 focus:outline-1 dark:border-neutral-700">
+           </div>
+       </label>
+       <p class="text-sm pt-2 text-gray-500 dark:text-neutral-500">128 note trovate nella memoria collettiva</p>
+   </div>
+   
+
+    <ul class="pt-2 space-y-4">
+        <NoteArchiveCard v-for="note in notes" :name="note.name" :last_edit="note.last_edit" :creation="note.creation" />
+    </ul>
+</template>

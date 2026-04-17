@@ -1,2 +1,8 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+*[debug], *[debug] * {
+    border: 1px solid greenyellow;
+}
