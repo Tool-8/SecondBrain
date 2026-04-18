@@ -21,12 +21,6 @@ const actions: ContextAction[] = [
 const showMenu = ref(false);
 const position = ref({ x: 0, y: 0 });
 
-const showContextMenu = (event: MouseEvent) => {
-    event.preventDefault();
-    showMenu.value = true;
-    position.value = { x: event.clientX, y: event.clientY };
-};
-
 const hideContextMenu = () => {
     showMenu.value = false;
 };
@@ -38,6 +32,22 @@ const handleAction = (action: ContextAction) => {
     } else if (action.action === 'elimina') {
         console.log('elimina');
     }
+};
+
+const handleClickOutside = () => {
+    hideContextMenu();
+};
+
+// aggiungi quando il menu si apre
+const showContextMenu = (event: MouseEvent) => {
+    event.preventDefault();
+    showMenu.value = true;
+    position.value = { x: event.clientX, y: event.clientY };
+
+    // piccolo delay per evitare che si chiuda subito
+    setTimeout(() => {
+        document.addEventListener('click', handleClickOutside, { once: true });
+    }, 0);
 };
 </script>
 
@@ -93,14 +103,13 @@ const handleAction = (action: ContextAction) => {
             @contextmenu.prevent="showContextMenu($event)"
         />
 
-        <div v-if="showMenu" class="overlay" @click="hideContextMenu" />
-
         <ContextMenu
             v-if="showMenu"
             :x="position.x"
             :y="position.y"
             :actions="actions"
             @action-clicked="handleAction"
+            @focusout.prevent="hideContextMenu"
         />
     </ul>
 </template>

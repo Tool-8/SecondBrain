@@ -18,6 +18,7 @@ const emitAction = (action: ContextAction) => {
     <div
         class="fixed z-50 context-menu"
         :style="{ top: y + 'px', left: x + 'px' }"
+        autofocus
     >
         <div
             v-for="item in actions"
