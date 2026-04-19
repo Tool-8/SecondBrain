@@ -1,8 +1,8 @@
 import { ref } from 'vue';
 
 export type ContextMenuPosition = {
-  x: number;
-  y: number;
+    x: number;
+    y: number;
 };
 
 export function useContextMenu<T>() {

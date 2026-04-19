@@ -16,22 +16,18 @@ const notes: Note[] = [
 const actions: ContextAction<Note>[] = [
     {
         label: 'Rinomina',
-        action: 'Rinomina',
         handler: (note) => console.log('Rinomina', note),
     },
     {
         label: 'Clona',
-        action: 'Clona',
         handler: (note) => console.log('Clona', note),
     },
     {
         label: 'Esporta',
-        action: 'Esporta',
         handler: (note) => console.log('Esporta', note),
     },
     {
         label: 'Elimina',
-        action: 'Elimina',
         handler: (note) => console.log('Elimina', note),
         variant: 'warning'
     },
@@ -94,12 +90,12 @@ const handleAction = (action: ContextAction<Note>) => {
 
     <ul class="pt-2 space-y-4">
         <NoteArchiveCard
-            v-for="note in notes"
-            :key="note.name"
-            :name="note.name"
-            :last_edit="note.last_edit"
-            :creation="note.creation"
-            @contextmenu="noteMenu.open($event, note)"
+        v-for="note in notes"
+        :key="note.name"
+        :name="note.name"
+        :last_edit="note.last_edit"
+        :creation="note.creation"
+        @contextmenu="noteMenu.open($event, note)"
         />
     </ul>
 

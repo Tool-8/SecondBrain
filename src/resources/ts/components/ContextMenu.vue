@@ -4,24 +4,24 @@ import { onClickOutside } from '@vueuse/core';
 import type { ContextAction } from '@/types/contextaction';
 
 defineProps<{
-  actions: ContextAction[];
-  x: number;
-  y: number;
+    actions: ContextAction[];
+    x: number;
+    y: number;
 }>();
 
 const emit = defineEmits<{
-  'action-clicked': [action: ContextAction];
-  close: [];
+    'action-clicked': [action: ContextAction];
+    close: [];
 }>();
 
 const menuRef = ref<HTMLElement | null>(null);
 
 onClickOutside(menuRef, () => {
-  emit('close');
+    emit('close');
 });
 
 const emitAction = (action: ContextAction) => {
-  emit('action-clicked', action);
+    emit('action-clicked', action);
 };
 
 const variantClasses: Record<string, string> = {
@@ -39,7 +39,6 @@ const variantClasses: Record<string, string> = {
         >
             <button
                 v-for="item in actions"
-                :key="item.action"
                 :class="[
                     'block w-full cursor-pointer px-4 py-2 text-left',
                     variantClasses[item.variant ?? 'default']
