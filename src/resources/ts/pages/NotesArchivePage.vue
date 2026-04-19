@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import NoteArchiveCard from '@/components/NoteArchiveCard.vue';
-import type { ContextAction } from '@/types/contextaction';
-import { ref } from 'vue';
 import ContextMenu from '@/components/ContextMenu.vue';
+
+import { useContextMenu } from '@/composables/useContextMenu';
+
+import type { ContextAction } from '@/types/contextaction';
 import type { Note } from '@/types/note';
 
 const notes: Note[] = [
@@ -11,44 +13,40 @@ const notes: Note[] = [
     { name: 'Nota 3', last_edit: '10/10/2010', creation: 'ieri' },
 ];
 
-const actions: ContextAction[] = [
-    { label: 'Rinomina', action: 'rinomina' },
-    { label: 'Clona', action: 'clona' },
-    { label: 'Esporta', action: 'esporta' },
-    { label: 'Elimina', action: 'elimina' },
+const actions: ContextAction<Note>[] = [
+    {
+        label: 'Rinomina',
+        action: 'Rinomina',
+        handler: (note) => console.log('Rinomina', note),
+    },
+    {
+        label: 'Clona',
+        action: 'Clona',
+        handler: (note) => console.log('Clona', note),
+    },
+    {
+        label: 'Esporta',
+        action: 'Esporta',
+        handler: (note) => console.log('Esporta', note),
+    },
+    {
+        label: 'Elimina',
+        action: 'Elimina',
+        handler: (note) => console.log('Elimina', note),
+        variant: 'warning'
+    },
 ];
 
-const showMenu = ref(false);
-const position = ref({ x: 0, y: 0 });
+const noteMenu = useContextMenu<Note>();
 
-const hideContextMenu = () => {
-    showMenu.value = false;
+const handleAction = (action: ContextAction<Note>) => {
+    const note = noteMenu.selectedItem.value;
+    if (!note) return;
+
+    action.handler?.(note);
+    noteMenu.close();
 };
 
-const handleAction = (action: ContextAction) => {
-    hideContextMenu();
-    if (action.action === 'clona') {
-        console.log('clona');
-    } else if (action.action === 'elimina') {
-        console.log('elimina');
-    }
-};
-
-const handleClickOutside = () => {
-    hideContextMenu();
-};
-
-// aggiungi quando il menu si apre
-const showContextMenu = (event: MouseEvent) => {
-    event.preventDefault();
-    showMenu.value = true;
-    position.value = { x: event.clientX, y: event.clientY };
-
-    // piccolo delay per evitare che si chiuda subito
-    setTimeout(() => {
-        document.addEventListener('click', handleClickOutside, { once: true });
-    }, 0);
-};
 </script>
 
 <template>
@@ -97,19 +95,20 @@ const showContextMenu = (event: MouseEvent) => {
     <ul class="pt-2 space-y-4">
         <NoteArchiveCard
             v-for="note in notes"
+            :key="note.name"
             :name="note.name"
             :last_edit="note.last_edit"
             :creation="note.creation"
-            @contextmenu.prevent="showContextMenu($event)"
-        />
-
-        <ContextMenu
-            v-if="showMenu"
-            :x="position.x"
-            :y="position.y"
-            :actions="actions"
-            @action-clicked="handleAction"
-            @focusout.prevent="hideContextMenu"
+            @contextmenu="noteMenu.open($event, note)"
         />
     </ul>
+
+    <ContextMenu
+        v-if="noteMenu.isOpen.value"
+        :x="noteMenu.position.value.x"
+        :y="noteMenu.position.value.y"
+        :actions="actions"
+        @action-clicked="handleAction"
+        @close="noteMenu.close"
+    />
 </template>

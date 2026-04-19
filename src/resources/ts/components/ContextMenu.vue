@@ -1,64 +1,53 @@
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue';
+import { ref } from 'vue';
+import { onClickOutside } from '@vueuse/core';
 import type { ContextAction } from '@/types/contextaction';
 
 defineProps<{
-    actions: ContextAction[],
-    x: number,
-    y: number
+  actions: ContextAction[];
+  x: number;
+  y: number;
 }>();
-const emit = defineEmits<{ 'action-clicked': [action: ContextAction] }>();
+
+const emit = defineEmits<{
+  'action-clicked': [action: ContextAction];
+  close: [];
+}>();
+
+const menuRef = ref<HTMLElement | null>(null);
+
+onClickOutside(menuRef, () => {
+  emit('close');
+});
 
 const emitAction = (action: ContextAction) => {
-    emit('action-clicked', action);
+  emit('action-clicked', action);
+};
+
+const variantClasses: Record<string, string> = {
+    default: 'text-gray-600 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-800',
+    warning:'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20',
 };
 </script>
 
 <template>
-    <div
-        class="fixed z-50 context-menu"
-        :style="{ top: y + 'px', left: x + 'px' }"
-        autofocus
-    >
+    <Teleport to="body">
         <div
-            v-for="item in actions"
-            :key="item.label"
-            class="context-menu-item"
-            :class="{ 'has-children': item.children }"
-            @click="!item.children && emitAction(item)"
+            ref="menuRef"
+            class="fixed z-99 min-w-42 rounded-sm border border-gray-200 bg-white shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+            :style="{ top: `${y}px`, left: `${x}px` }"
         >
-            {{ item.label }}
-            <span v-if="item.children">▶</span>
-
-            <div v-if="item.children" class="context-submenu">
-                <div
-                    v-for="child in item.children"
-                    :key="child.label"
-                    class="context-menu-item"
-                    @click.stop="emitAction(child)"
-                >
-                    {{ child.label }}
-                </div>
-            </div>
+            <button
+                v-for="item in actions"
+                :key="item.action"
+                :class="[
+                    'block w-full cursor-pointer px-4 py-2 text-left',
+                    variantClasses[item.variant ?? 'default']
+                ]"
+                @click="emitAction(item)"
+            >
+                {{ item.label }}
+            </button>
         </div>
-    </div>
+    </Teleport>
 </template>
-
-<style scoped>
-.context-menu {
-    position: absolute;
-    background: white;
-    border: 1px solid #ccc;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-    min-width: 150px;
-}
-
-.context-menu div {
-    padding: 10px;
-    cursor: pointer;
-}
-
-.context-menu div:hover {
-    background-color: #f0f0f0;
-}
-</style>
