@@ -10,11 +10,12 @@
         //forse necessario esplicitare dipendenza factory per facilitare test
         //forse necessario avere strategy interface come attributo
 
-        public function __construct (private readonly NoteRepositoryInterface $repo) {}
+        public function __construct (private readonly NoteRepositoryInterface $repo, 
+            private readonly ExportStrategyFactory $factory) {}
 
         public function export(string $id, string $format) {
             $note = $this->repo->get($id);
-            $strategy = ExportStrategyFactory::make($format);
+            $strategy = $this->factory->make($format);
             
             return [
                 'content' => $strategy->export($note["content_md"], $note["title"]),

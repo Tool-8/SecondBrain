@@ -5,19 +5,18 @@
     use App\Services\ExportService;
     use Illuminate\Http\Request;
     use Illuminate\Http\JsonResponse;
+    use Illuminate\Http\Response;
     use RuntimeException;
     use InvalidArgumentException;
-    use Illuminate\Validation\Rule;
 
     class ExportController extends Controller {
 
         public function __construct(private readonly ExportService $service) {}
 
-        public function __invoke(Request $request): JsonResponse {
+        public function __invoke(Request $request, string $id): JsonResponse|Response {
 
                 $data = $request->validate(
                     [
-                        'id'      => ['required', 'string'],
                         'format' => [
                             'required', 
                             'string', 
@@ -27,14 +26,19 @@
                 );
 
             try {
-                return response()->json(($this->service->export($data['id'], $data['format'])));
+                $export = $this->service->export($id, $data['format']);
             
+                return response($export['content'])
+                ->header('Content-Type', $export['content_type'])
+                ->header('Content-Disposition', 'attachment; filename="' . $export['filename'] . '"');
+
             } catch (RuntimeException $e) {
                 return $this->mapError($e);
 
             } catch (InvalidArgumentException $e) {
                 return response()->json(['message' => $e->getMessage()], 400);
             }
+            
         }
 
         private function mapError(RuntimeException $e): JsonResponse {
