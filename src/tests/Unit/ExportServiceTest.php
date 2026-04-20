@@ -10,8 +10,6 @@
     use Tests\TestCase;
     use PHPUnit\Framework\MockObject\MockObject;
 
-    use Mockery;
-
     class ExportServiceTest extends TestCase {
         private NoteRepositoryInterface&MockObject $repository;
         private ExportStrategyFactory&MockObject $factory;
