@@ -4,7 +4,13 @@
     use App\Http\Controllers\Api\ExportController;
     use App\Http\Controllers\Api\NoteController;
 
-    Route::apiResource('notes', NoteController::class);
+    Route::prefix('notes')->group(function () {
+        Route::get('/', [NoteController::class, 'index']);      // lista
+        Route::get('/{id}', [NoteController::class, 'show']);   // dettaglio
+        Route::post('/', [NoteController::class, 'store']);     // crea
+        Route::put('/{id}', [NoteController::class, 'update']); // aggiorna
+        Route::delete('/{id}', [NoteController::class, 'destroy']);
+    });
     
     Route::get('notes/{id}/export', ExportController::class);
 ?>
