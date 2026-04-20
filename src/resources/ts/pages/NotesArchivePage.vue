@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import NoteArchiveCard from '@/components/NoteArchiveCard.vue';
 import ContextMenu from '@/components/ContextMenu.vue';
+import { computed, onMounted } from 'vue';
+import { useNotes } from '@/composables/useNotes';
 
 import { useContextMenu } from '@/composables/useContextMenu';
 
 import type { ContextAction } from '@/types/contextaction';
 import type { Note } from '@/types/note';
 
-const notes: Note[] = [
-    { name: 'Nota 5', last_edit: '10/10/2010', creation: 'ieri' },
-    { name: 'Nota 2', last_edit: '10/10/2010', creation: 'ieri' },
-    { name: 'Nota 3', last_edit: '10/10/2010', creation: 'ieri' },
-];
+const { notes, loading, error, fetchNotes } = useNotes();
+
+onMounted(() => fetchNotes());
+const noteCount = computed(() => notes.value.length);
 
 const actions: ContextAction<Note>[] = [
     {
@@ -29,7 +30,7 @@ const actions: ContextAction<Note>[] = [
     {
         label: 'Elimina',
         handler: (note) => console.log('Elimina', note),
-        variant: 'warning'
+        variant: 'warning',
     },
 ];
 
@@ -42,7 +43,6 @@ const handleAction = (action: ContextAction<Note>) => {
     action.handler?.(note);
     noteMenu.close();
 };
-
 </script>
 
 <template>
@@ -84,18 +84,20 @@ const handleAction = (action: ContextAction<Note>) => {
             </div>
         </label>
         <p class="text-sm pt-2 text-gray-500 dark:text-neutral-500">
-            128 note trovate nella memoria collettiva
+            {{ noteCount }} {{ noteCount === 1 ? 'nota trovata' : 'note trovate' }} nella memoria collettiva
         </p>
     </div>
 
-    <ul class="pt-2 space-y-4">
+    <div v-if="loading">Caricamento...</div>
+    <div v-else-if="error">{{ error }}</div>
+    <ul v-else class="pt-2 space-y-4">
         <NoteArchiveCard
-        v-for="note in notes"
-        :key="note.name"
-        :name="note.name"
-        :last_edit="note.last_edit"
-        :creation="note.creation"
-        @contextmenu="noteMenu.open($event, note)"
+            v-for="note in notes"
+            :key="note.name"
+            :name="note.name"
+            :last_edit="note.last_edit"
+            :creation="note.creation"
+            @contextmenu="noteMenu.open($event, note)"
         />
     </ul>
 
