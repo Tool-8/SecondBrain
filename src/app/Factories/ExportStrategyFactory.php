@@ -9,7 +9,7 @@
     use InvalidArgumentException;
 
     class ExportStrategyFactory {
-        public static function make(string $format) : ExportStrategyInterface {
+        public function make(string $format) : ExportStrategyInterface {
             return match ($format) {
                 'md' => new MdExport(),
                 'html' => new HtmlExport(),
