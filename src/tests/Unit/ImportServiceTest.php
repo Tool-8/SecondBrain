@@ -6,7 +6,7 @@
     use App\Services\ImportService;
     use App\Strategies\ImportStrategyInterface;
     use Illuminate\Http\UploadedFile;
-    use Illuminate\Support\Facades\Date;
+    use RuntimeException;
     use Tests\TestCase;
     use InvalidArgumentException;
 
@@ -77,6 +77,34 @@
             $this->expectException(InvalidArgumentException::class);
             $this->expectExceptionMessage("xml format is not supported");
             
+            $this->service->handleUpload($file);
+        }
+
+        public function test_throws_exception_when_title_is_used() {
+            $now = now();
+            $this->travelTo($now); //freeze time
+
+            $file = UploadedFile::fake()->create('test.xml');
+            $parsedData = ['title' => 'test', 'content' => '# Prova'];
+
+
+            $strategyMock = $this->createMock(ImportStrategyInterface::class);
+            $strategyMock->method('parse')
+                ->with($file)
+                ->willReturn($parsedData);
+            
+            $this->factory->expects($this->once())
+                ->method('make')
+                ->with('xml')
+                ->willReturn($strategyMock);
+
+            $this->repository->expects(($this->once()))
+                ->method('isTitleUsed')
+                ->willReturn(true);
+
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('TITLE_IN_USE');
+
             $this->service->handleUpload($file);
         }
     }
