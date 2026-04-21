@@ -41,8 +41,7 @@
 
         private function mapError(RuntimeException $e): JsonResponse {
             return match ($e->getMessage()) {
-                'INVALID_ID'    => response()->json(['message' => 'Invalid note id'], 400),
-                'NOT_FOUND'     => response()->json(['message' => 'Note not found'], 404),
+                'TITLE_IN_USE'    => response()->json(['message' => 'Title already used by another note'], 400),
                 default         => response()->json(['message' => 'Server error'], 500),
             };
         }

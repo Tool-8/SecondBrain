@@ -4,6 +4,7 @@
     use App\Factories\ImportStrategyFactory;
     use App\Repositories\NoteRepositoryInterface;
     use Illuminate\Http\UploadedFile;
+    use RuntimeException;
 
     class ImportService {
         public function __construct(private readonly NoteRepositoryInterface $repository, private readonly ImportStrategyFactory $factory)
@@ -18,6 +19,7 @@
             $timestamp = now()->format('Y-m-d H:i:s');
             $title = $data['title'] . ' - ' . $timestamp;
 
+            if ($this->repository->isTitleUsed($title)) throw new RuntimeException("TITLE_IN_USE");
             return $this->repository->create($title, $data['content']);
         }
     }

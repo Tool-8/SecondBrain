@@ -6,8 +6,9 @@
     use Illuminate\Http\JsonResponse;
     use Illuminate\Http\Request;
     use Illuminate\Http\UploadedFile;
-use InvalidArgumentException;
-use PHPUnit\Framework\MockObject\MockObject;
+    use InvalidArgumentException;
+    use RuntimeException;
+    use PHPUnit\Framework\MockObject\MockObject;
     use Tests\TestCase;
 
     class ImportControllerTest extends TestCase {
@@ -53,6 +54,22 @@ use PHPUnit\Framework\MockObject\MockObject;
             $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(400, $response->getStatusCode());
             $this->assertSame('xml format is not supported', $response->getData(true)['message']);
+        }
+
+        public function test_returns_400_when_title_is_already_used() {
+            $file = UploadedFile::fake()->create('Test.xml', 100);
+
+            $this->service
+                ->expects($this->once())
+                ->method('handleUpload')
+                ->with($file)
+                ->willThrowException(new RuntimeException("TITLE_IN_USE"));
+
+            $response = $this->controller->__invoke(new Request([],[],[],[],['file' => $file]));
+
+            $this->assertInstanceOf(JsonResponse::class, $response);
+            $this->assertSame(400, $response->getStatusCode());
+            $this->assertSame('Title already used by another note', $response->getData(true)['message']);
         }
 
     } 
