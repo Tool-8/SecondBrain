@@ -5,12 +5,13 @@
     use App\Repositories\NoteRepositoryInterface;
     use Illuminate\Http\UploadedFile;
     use RuntimeException;
+    use App\Models\Note;
 
     class ImportService {
         public function __construct(private readonly NoteRepositoryInterface $repository, private readonly ImportStrategyFactory $factory)
         { }
     
-        public function handleUpload(UploadedFile $file) {
+        public function handleUpload(UploadedFile $file): Note {
             $extension = $file->getClientOriginalExtension();
             $strategy = $this->factory->make($extension);
 

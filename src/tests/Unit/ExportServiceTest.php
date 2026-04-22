@@ -9,6 +9,7 @@
     use InvalidArgumentException;
     use Tests\TestCase;
     use PHPUnit\Framework\MockObject\MockObject;
+    use App\Models\Note;
 
     class ExportServiceTest extends TestCase {
         private NoteRepositoryInterface&MockObject $repository;
@@ -24,15 +25,15 @@
         }
 
         public function test_export_md() : void{
-            $noteId = '123';
-            $note = [
-                'title' => "Prova Nota",
-                'content_md' => "# Prova"
-            ];
+            $note = new Note (
+                "123",
+                "Prova Nota",
+                "# Prova"
+            );
 
             $this->repository->expects($this->once())
                 ->method('get')
-                ->with($noteId)
+                ->with($note->getId())
                 ->willReturn($note);
 
             $strategyMock = $this->createMock(ExportStrategyInterface::class);
@@ -45,7 +46,7 @@
                 ->with('md')
                 ->willReturn($strategyMock);
             
-            $result = $this->service->export($noteId, 'md');
+            $result = $this->service->export($note->getId(), 'md');
 
             $this->assertEquals('# Prova', $result['content']);
             $this->assertEquals('text/markdown', $result['content_type']);
@@ -54,10 +55,7 @@
 
         public function test_export_html() : void{
             $noteId = '123';
-            $note = [
-                'title' => "Prova Nota",
-                'content_md' => "# Prova"
-            ];
+            $note = new Note($noteId, "Prova Nota", "# Prova");
 
             $this->repository->expects($this->once())
                 ->method('get')
@@ -98,10 +96,11 @@
         
         public function test_export_pdf() : void{
             $noteId = '123';
-            $note = [
-                'title' => "Prova Nota",
-                'content_md' => "# Prova"
-            ];
+            $note = new Note(
+                $noteId,
+                "Prova Nota",
+                "# Prova"
+            );
             $this->repository->expects($this->once())
                 ->method('get')
                 ->with($noteId)
@@ -127,10 +126,11 @@
         public function test_propagates_exception_with_invalid_format(){
 
             $noteId = '123';
-            $note = [
-                'title' => "Prova Nota",
-                'content_md' => "Prova"
-            ];
+            $note = new Note(
+                $noteId,
+                "Prova Nota",
+                "# Prova"
+            );
             $this->repository->expects($this->once())
                 ->method('get')
                 ->with($noteId)

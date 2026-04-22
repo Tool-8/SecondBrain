@@ -28,7 +28,7 @@
 
             try {
                 $note = $this->service->handleUpload($file);
-                return response()->json($note, 201);
+                return response()->json($note->getData(), 201);
 
             } catch (RuntimeException $e) {
                 return $this->mapError($e);

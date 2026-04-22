@@ -9,6 +9,7 @@
     use PHPUnit\Framework\MockObject\MockObject;
     use RuntimeException;
     use Tests\TestCase;
+    use App\Models\Note;
 
     class NoteControllerTest extends TestCase {
         private NoteService&MockObject $noteService;
@@ -23,8 +24,8 @@
 
         public function test_index_returns_200_with_list(): void {
             $notes = [
-                ['id' => '1', 'title' => 'Note A', 'content_md' => 'Hello'],
-                ['id' => '2', 'title' => 'Note B', 'content_md' => 'World'],
+                new Note ('1', 'Note A', 'Hello'),
+                new Note ('2', 'Note B', 'World'),
             ];
 
             $this->noteService
@@ -34,9 +35,11 @@
 
             $response = $this->controller->index();
 
+            $data = array_map(fn($note) => $note->getData(), $notes);
+
             $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(200, $response->getStatusCode());
-            $this->assertSame($notes, $response->getData(true));
+            $this->assertSame($data, $response->getData(true));
         }
 
         public function test_index_returns_empty_array_when_no_notes(): void {
@@ -53,7 +56,7 @@
         }
 
         public function test_show_returns_200_with_note(): void {
-            $note = ['id' => 'abc', 'title' => 'Test', 'content_md' => '# Hello'];
+            $note = new Note('abc', 'Test', '# Hello');
 
             $this->noteService
                 ->expects($this->once())
@@ -65,7 +68,7 @@
 
             $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(200, $response->getStatusCode());
-            $this->assertSame($note, $response->getData(true));
+            $this->assertSame($note->getData(), $response->getData(true));
         }
 
         public function test_show_returns_404_when_not_found(): void {
@@ -93,7 +96,7 @@
         }
 
         public function test_store_returns_201_with_created_note(): void {
-            $created = ['id' => 'xyz', 'title' => 'New Note', 'content_md' => 'body'];
+            $created = new Note('xyz', 'New Note', 'body');
 
             $this->noteService
                 ->expects($this->once())
@@ -110,11 +113,11 @@
 
             $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(201, $response->getStatusCode());
-            $this->assertSame($created, $response->getData(true));
+            $this->assertSame($created->getData(), $response->getData(true));
         }
 
         public function test_store_uses_empty_string_when_content_md_is_absent(): void {
-            $emptyNote = ['id' => '1', 'title' => 'Only Title', 'content_md' => ''];
+            $emptyNote = new Note('1', 'Only Title', '');
             
             $this->noteService
                 ->expects($this->once())
@@ -128,7 +131,7 @@
 
             $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(201, $response->getStatusCode());
-            $this->assertSame($emptyNote, $response->getData(true));
+            $this->assertSame($emptyNote->getData(), $response->getData(true));
         }
 
         public function test_store_returns_409_when_title_in_use(): void {
@@ -149,7 +152,7 @@
         }
 
         public function test_update_returns_200_with_updated_note(): void {
-            $updated = ['id' => '1', 'title' => 'Renamed', 'content_md' => 'New body'];
+            $updated = new Note('1', 'Renamed', 'New body');
 
             $this->noteService
                 ->expects($this->once())
@@ -166,7 +169,7 @@
 
             $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(200, $response->getStatusCode());
-            $this->assertSame($updated, $response->getData(true));
+            $this->assertSame($updated->getData(), $response->getData(true));
         }
 
         public function test_update_returns_404_when_note_not_found(): void {
