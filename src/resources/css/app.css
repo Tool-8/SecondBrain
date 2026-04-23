@@ -3,6 +3,25 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@font-face {
+    font-family: 'Manrope';
+    src: url('../fonts/Manrope-Variable.ttf') format('truetype');
+    font-weight: 200 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'JetBrains';
+    src: url('../fonts/JetBrainsMono-VariableFont_wght.ttf') format('truetype');
+    font-weight: 200 800;
+    font-style: normal;
+}
+
+@theme {
+  --font-sans: "Manrope", sans-serif;
+  --font-jetbrains: "JetBrains", sans-serif;
+}
+
 *[debug], *[debug] * {
     border: 1px solid greenyellow;
 }
