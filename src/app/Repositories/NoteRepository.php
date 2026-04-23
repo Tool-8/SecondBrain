@@ -4,6 +4,7 @@
     use Illuminate\Support\Facades\Storage;
     use Illuminate\Support\Str;
     use RuntimeException;
+    use App\Models\Note;
 
     class NoteRepository implements NoteRepositoryInterface
     {
@@ -23,27 +24,28 @@
                 }
 
                 $raw = Storage::disk('local')->get($file);
-                [$meta, $_content] = $this->parseFile($raw);
+                [$meta, $content] = $this->parseFile($raw);
 
                 $id = $meta['id'] ?? $this->idFromPath($file);
                 $title = $meta['title'] ?? $this->fallbackTitle($raw, $id);
 
-                $notes[] = [
-                    'id'         => $id,
-                    'title'      => $title,
-                    'created_at' => $meta['created_at'] ?? null,
-                    'updated_at' => $meta['updated_at'] ?? null,
-                ];
+                $notes[] = new Note(
+                    $id,
+                    $title,
+                    $content,
+                    $meta['created_at'] ?? null, 
+                    $meta['updated_at'] ?? null
+                );
             }
 
             usort($notes, function ($a, $b) {
-                return strcmp($b['updated_at'] ?? '', $a['updated_at'] ?? '');
+                return strcmp($b->getUpdatedAt() ?? '', $a->getUpdatedAt() ?? '');
             });
 
             return $notes;
         }
 
-        public function get(string $id): array
+        public function get(string $id): Note
         {
             $this->assertValidId($id);
             $this->ensureDir();
@@ -56,41 +58,30 @@
             $raw = Storage::disk('local')->get($path);
             [$meta, $content] = $this->parseFile($raw);
 
-            return [
-                'id'         => $meta['id'] ?? $id,
-                'title'      => $meta['title'] ?? $this->fallbackTitle($raw, $id),
-                'created_at' => $meta['created_at'] ?? null,
-                'updated_at' => $meta['updated_at'] ?? null,
-                'content_md' => $content,
-            ];
+            return new Note(
+                $meta['id'] ?? $id, 
+                $meta['title'] ?? $this->fallbackTitle($raw, $id), 
+                $content,
+                $meta['created_at'] ?? null,
+                $meta['updated_at'] ?? null,
+            );
         }
 
-        public function create(string $title, string $contentMd): array
+        public function create(string $title, string $contentMd): Note
         {
             $this->ensureDir();
 
             $id  = (string) Str::uuid();
             $now = now()->toIso8601String();
 
-            $meta = [
-                'id'         => $id,
-                'title'      => $title,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
+            $note = new Note($id, $title, $contentMd, $now, $now);
 
-            Storage::disk('local')->put($this->pathForId($id), $this->buildFile($meta, $contentMd));
+            Storage::disk('local')->put($this->pathForId($id), $this->buildFile($note));
 
-            return [
-                'id'         => $id,
-                'title'      => $title,
-                'created_at' => $now,
-                'updated_at' => $now,
-                'content_md' => $contentMd,
-            ];
+            return $note;
         }
 
-        public function update(string $id, string $title, string $contentMd): array
+        public function update(string $id, string $title, string $contentMd): Note
         {
             $this->assertValidId($id);
             $this->ensureDir();
@@ -106,28 +97,23 @@
             $createdAt = $oldMeta['created_at'] ?? now()->toIso8601String();
 
             $now  = now()->toIso8601String();
-            $meta = [
-                'id'         => $id,
-                'title'      => $title,
-                'created_at' => $createdAt,
-                'updated_at' => $now,
-            ];
+            $note = new Note(
+                $id,
+                $title,
+                $contentMd,
+                $createdAt,
+                $now
+            );
+            Storage::disk('local')->put($path, $this->buildFile($note));
 
-            Storage::disk('local')->put($path, $this->buildFile($meta, $contentMd));
-
-            return [
-                'id'         => $id,
-                'title'      => $title,
-                'created_at' => $createdAt,
-                'updated_at' => $now,
-                'content_md' => $contentMd,
-            ];
+            return $note;
         }
 
         public function isTitleUsed(string $title, ?string $excludeId = null): bool
         {
             foreach ($this->list() as $note) {
-                if (mb_strtolower($note['title']) === mb_strtolower($title) && $note['id'] !== $excludeId) {
+                $noteData = $note->getData();
+                if (mb_strtolower($noteData['title']) === mb_strtolower($title) && $noteData['id'] !== $excludeId) {
                     return true;
                 }
             }
@@ -216,16 +202,18 @@
             return $meta;
         }
 
-        private function buildFile(array $meta, string $contentMd): string
+        private function buildFile(Note $note): string
         {
+            $noteData = $note->getData();
+        
             $front  = "---\n";
-            $front .= "id: "         . ($meta['id']         ?? '') . "\n";
-            $front .= "title: \""    . ($meta['title']       ?? '') . "\"\n";
-            $front .= "created_at: \"" . ($meta['created_at'] ?? '') . "\"\n";
-            $front .= "updated_at: \"" . ($meta['updated_at'] ?? '') . "\"\n";
+            $front .= "id: "         . $noteData['id'] . "\n";
+            $front .= "title: \""    . $noteData['title'] . "\"\n";
+            $front .= "created_at: \"" . ($noteData['created_at'] ?? '') . "\"\n";
+            $front .= "updated_at: \"" . ($noteData['updated_at'] ?? '') . "\"\n";
             $front .= "---\n\n";
 
-            return $front . $contentMd . "\n";
+            return $front . $noteData['content_md'] . "\n";
         }
 
         private function fallbackTitle(string $raw, string $id): string

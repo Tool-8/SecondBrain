@@ -9,6 +9,7 @@
     use RuntimeException;
     use Tests\TestCase;
     use InvalidArgumentException;
+    use App\Models\Note;
 
     use PHPUnit\Framework\MockObject\MockObject;
 
@@ -45,12 +46,13 @@
                 ->with('md')
                 ->willReturn($strategyMock);
 
-            $note = [
-                'id' => 'abc',
-                'title' => $title,
-                'content' => '# Prova',
-                'created_at' => $now,
-            ];
+            $note = new Note(
+                'abc',
+                $title,
+                '# Prova',
+                $now,
+                $now,
+            );
 
             $this->repository->expects($this->once())
                 ->method('create')
@@ -59,10 +61,11 @@
     
             $result = $this->service->handleUpload($file);
         
-            $this->assertEquals($note['id'], $result['id']);
-            $this->assertEquals($note['title'], $result['title']);
-            $this->assertEquals($note['content'], $result['content']);
-            $this->assertEquals($note['created_at'], $result['created_at']);            
+            $this->assertEquals($note->getId(), $result->getId());
+            $this->assertEquals($note->getTitle(), $result->getTitle());
+            $this->assertEquals($note->getContent(), $result->getContent());
+            $this->assertEquals($note->getCreatedAt(), $result->getCreatedAt()); 
+            $this->assertEquals($note->getUpdatedAt(), $result->getUpdatedAt());
 
             $this->travelBack(); //unfreeze time
         }

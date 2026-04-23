@@ -10,6 +10,7 @@
     use RuntimeException;
     use PHPUnit\Framework\MockObject\MockObject;
     use Tests\TestCase;
+    use App\Models\Note;
 
     class ImportControllerTest extends TestCase {
 
@@ -25,7 +26,7 @@
 
         public function test_returns_201_with_correct_note_data() {
             $file = UploadedFile::fake()->create('Test.md', 100);
-            $note = ['id' => 'abc', 'title' => 'Test - 2026-04-21 12:00:00'];
+            $note = new Note ('abc', 'Test - 2026-04-21 12:00:00', '');
 
             $this->service
                 ->expects($this->once())
@@ -37,7 +38,7 @@
 
             $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(201, $response->getStatusCode());
-            $this->assertSame($note, $response->getData(true));
+            $this->assertSame($note->getData(), $response->getData(true));
         }
 
         public function test_returns_400_when_file_extension_is_not_supported() {
