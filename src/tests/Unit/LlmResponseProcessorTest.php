@@ -24,7 +24,14 @@
 
         public function test_make_returns_response() {
             Http::fake([
-                '*' => Http::response(['choices' => [['message' => ['content' => 'ok']]]], 200)
+                '*' => Http::response([
+                    'choices' => [
+                        ['message' => [
+                            'content' => 'ok'
+                            ]
+                        ]
+                    ]
+                ], 200)
             ]);
 
             $response = $this->processor->make('prompt', 'testo');

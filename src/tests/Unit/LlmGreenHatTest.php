@@ -4,19 +4,19 @@
     use PHPUnit\Framework\MockObject\MockObject;
     use RuntimeException;
     use Tests\TestCase;
-    use App\Strategies\LlmSummarize;
+    use App\Strategies\LlmGreenHat;
     use Illuminate\Support\Facades\Http;
     use App\Utilities\Context;
 
-    class LlmSummarizeTest extends TestCase {
-        private LlmSummarize $strategy;
+    class LlmGreenHatTest extends TestCase {
+        private LlmGreenHat $strategy;
         private LlmResponseProcessor&MockObject $processor;
 
         protected function setUp(): void {
             parent::setUp();
 
             $this->processor = $this->createMock(LlmResponseProcessor::class);
-            $this->strategy = new LlmSummarize($this->processor);
+            $this->strategy = new LlmGreenHat($this->processor);
         }
 
         public function test_returns_generated_text_on_success() : void {

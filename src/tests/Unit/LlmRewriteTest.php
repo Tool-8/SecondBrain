@@ -4,19 +4,19 @@
     use PHPUnit\Framework\MockObject\MockObject;
     use RuntimeException;
     use Tests\TestCase;
-    use App\Strategies\LlmSummarize;
+    use App\Strategies\LlmRewrite;
     use Illuminate\Support\Facades\Http;
     use App\Utilities\Context;
 
-    class LlmSummarizeTest extends TestCase {
-        private LlmSummarize $strategy;
+    class LlmRewriteTest extends TestCase {
+        private LlmRewrite $strategy;
         private LlmResponseProcessor&MockObject $processor;
 
         protected function setUp(): void {
             parent::setUp();
 
             $this->processor = $this->createMock(LlmResponseProcessor::class);
-            $this->strategy = new LlmSummarize($this->processor);
+            $this->strategy = new LlmRewrite($this->processor);
         }
 
         public function test_returns_generated_text_on_success() : void {
@@ -42,7 +42,7 @@
                 ->method('handleError')
                 ->with($fakeResponse);
 
-            $context = new Context('Testo da processare');
+            $context = new Context('Testo da processare', ['style' => 'Migliora Grammatica']);
             $result = $this->strategy->process($context);
 
             $this->assertSame('Risposta generata dal modello', $result);
@@ -69,7 +69,7 @@
                 ->with($fakeResponse)
                 ->willThrowException(new RuntimeException('Errore LLM 500: Internal Server Error'));
 
-            $context = new Context('Testo da processare');
+            $context = new Context('Testo da processare', ['style' => 'Migliora Grammatica']);
             $this->strategy->process($context);
         }
 
@@ -79,7 +79,7 @@
                 '*' => Http::response([], 200)
             ]);
 
-            $context = new Context('Testo da processare');
+            $context = new Context('Testo da processare', ['style' => 'Migliora Grammatica']);
             $result = $this->strategy->process($context);
             $this->assertSame('Risposta vuota', $result);
         }
