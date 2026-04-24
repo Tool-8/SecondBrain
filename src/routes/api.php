@@ -1,5 +1,6 @@
 <?php
 
+    use App\Http\Controllers\Api\ImportController;
     use Illuminate\Support\Facades\Route;
     use App\Http\Controllers\Api\ExportController;
     use App\Http\Controllers\Api\NoteController;
@@ -13,4 +14,6 @@
     });
     
     Route::get('notes/{id}/export', ExportController::class);
+    
+    Route::post('notes/import',ImportController::class); 
 ?>
