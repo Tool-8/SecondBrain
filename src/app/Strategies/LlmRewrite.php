@@ -12,8 +12,17 @@
         public function process(Context $context): string {
             
             $text = $context->getText();
-            $style = $context->getOptions()['style'];
-            $prompt = '';
+            $styles = $context->getOptions()['style'];
+
+            $prompts = [
+                'grammar'   => 'Correggi gli errori grammaticali, ortografici e sintattici del testo, mantenendo il significato originale.',
+                'extension' => 'Estendi il testo aggiungendo dettagli, esempi e approfondimenti, mantenendo il tema originale.',
+                'lexicon'   => 'Migliora il lessico del testo sostituendo le parole con termini più precisi, ricchi e appropriati al contesto.',
+                'stylistic' => 'Varia lo stile del testo rendendolo più fluido, elegante e coinvolgente, senza alterarne il contenuto.',
+            ];
+
+            $prompt  = "Riscrivi il testo applicando le seguenti istruzioni:\n";
+            $prompt .= implode("\n", array_map(fn($s) => '- ' . $prompts[$s], $styles));
             $response = $this->processor->make($prompt, $text);
             $this->processor->handleError($response);
 

@@ -42,7 +42,7 @@
                 ->method('handleError')
                 ->with($fakeResponse);
 
-            $context = new Context('Testo da processare', ['style' => 'Migliora Grammatica']);
+            $context = new Context('Testo da processare', ['style' => ['grammar', 'lexicon']]);
             $result = $this->strategy->process($context);
 
             $this->assertSame('Risposta generata dal modello', $result);
@@ -69,7 +69,7 @@
                 ->with($fakeResponse)
                 ->willThrowException(new RuntimeException('Errore LLM 500: Internal Server Error'));
 
-            $context = new Context('Testo da processare', ['style' => 'Migliora Grammatica']);
+            $context = new Context('Testo da processare', ['style' => ['grammar', 'lexicon']]);
             $this->strategy->process($context);
         }
 
@@ -79,7 +79,7 @@
                 '*' => Http::response([], 200)
             ]);
 
-            $context = new Context('Testo da processare', ['style' => 'Migliora Grammatica']);
+            $context = new Context('Testo da processare', ['style' => ['grammar', 'lexicon']]);
             $result = $this->strategy->process($context);
             $this->assertSame('Risposta vuota', $result);
         }
