@@ -4,7 +4,7 @@ import NavButton from './navigation/NavButton.vue';
 </script>
 
 <template>
-    <aside class="flex h-screen flex-col min-w-[14rem] justify-between border-e border-gray-100 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+    <aside class="flex h-screen flex-col min-w-[14rem] justify-between border-e border-gray-100 bg-white dark:border-neutral-800 dark:bg-neutral-900 sticky top-0">
         <div class="px-4 py-6">
             <span class="grid h-10 px-4 py-2 w-full rounded-lg text-lg text-gray-600 font-medium text-bold dark:text-neutral-100">
             [SB] SecondBrain

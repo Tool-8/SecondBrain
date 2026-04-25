@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import NotesArchivePage from '@/pages/NotesArchivePage.vue';
+import NoteEditorPage from '@/pages/NoteEditorPage.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -8,6 +9,10 @@ const router = createRouter({
     {
       path: '/',
       component: NotesArchivePage,
+    },
+    {
+      path: '/notes/new',
+      component: NoteEditorPage,
     },
   ],
 });
