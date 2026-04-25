@@ -1,12 +1,6 @@
 import apiClient from '@/services/apiClient';
-import type { Note } from '@/types/note';
-
-interface NoteAPI {
-    id: number;
-    title: string;
-    created_at: string;
-    updated_at: string;
-}
+import type { Note, NoteAPI } from '@/types/note';
+import { serviceHandler } from '@/utils/serviceHandler';
 
 function formatDate(timestamp: string): string {
     const date = new Date(timestamp);
@@ -27,6 +21,7 @@ function formatDate(timestamp: string): string {
 
 function mapNote(raw: NoteAPI): Note {
     return {
+        id: raw.id,
         name: raw.title,
         last_edit: formatDate(raw.updated_at),
         creation: formatDate(raw.created_at),
@@ -35,7 +30,18 @@ function mapNote(raw: NoteAPI): Note {
 
 export const noteService = {
     getAll: async (): Promise<Note[]> => {
-        const response = await apiClient.get<NoteAPI[]>('/notes');
+        const response = await apiClient.get('/notes');
         return response.data.map(mapNote);
     },
-}
+    rename: async (id: string, newName: string): Promise<Note> => {
+        return serviceHandler(() =>
+            apiClient.put('/notes/' + id, {
+                title: newName,
+            }).then(response => mapNote(response.data))
+        );
+    },
+    remove: async (id: string): Promise<void> => {
+        return serviceHandler(() =>
+            apiClient.delete('/notes/' + id));
+    }
+};

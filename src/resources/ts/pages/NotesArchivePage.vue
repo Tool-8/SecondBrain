@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import NoteArchiveCard from '@/components/NoteArchiveCard.vue';
 import ContextMenu from '@/components/ContextMenu.vue';
+import ToastList from '@/components/layout/ToastList.vue';
 import { computed, onMounted } from 'vue';
 import { useNotes } from '@/composables/useNotes';
+import { useToast } from '@/composables/useToast';
 
 import { useContextMenu } from '@/composables/useContextMenu';
 
 import type { ContextAction } from '@/types/contextaction';
 import type { Note } from '@/types/note';
 
-const { notes, loading, error, fetchNotes } = useNotes();
+const { successToast, errorToast, warningToast, infoToast } = useToast();
+const { notes, loading, error, fetchNotes, renameNote, removeNote } =
+    useNotes();
 
 onMounted(() => fetchNotes());
 const noteCount = computed(() => notes.value.length);
@@ -17,7 +21,19 @@ const noteCount = computed(() => notes.value.length);
 const actions: ContextAction<Note>[] = [
     {
         label: 'Rinomina',
-        handler: (note) => console.log('Rinomina', note),
+        handler: async (note) => {
+            try {
+                await renameNote(note.id, 'La mia seconda nota');
+                successToast('Rinomina effettuata', '');
+            } catch (error) {
+                errorToast(
+                    'Errore nella rinomina della nota',
+                    (error as Error).message
+                );
+            } finally {
+                await fetchNotes();
+            }
+        },
     },
     {
         label: 'Clona',
@@ -84,7 +100,9 @@ const handleAction = (action: ContextAction<Note>) => {
             </div>
         </label>
         <p class="text-sm pt-2 text-gray-500 dark:text-neutral-500">
-            {{ noteCount }} {{ noteCount === 1 ? 'nota trovata' : 'note trovate' }} nella memoria collettiva
+            {{ noteCount }}
+            {{ noteCount === 1 ? 'nota trovata' : 'note trovate' }} nella
+            memoria collettiva
         </p>
     </div>
 
@@ -109,4 +127,6 @@ const handleAction = (action: ContextAction<Note>) => {
         @action-clicked="handleAction"
         @close="noteMenu.close"
     />
+
+    <ToastList />
 </template>
