@@ -126,6 +126,7 @@ const handleAction = (action: ContextAction<Note>) => {
         @action-clicked="handleAction"
         @close="noteMenu.close"
     />
+    </div>
 
     <ToastList />
 </template>
