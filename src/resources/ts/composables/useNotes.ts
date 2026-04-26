@@ -19,10 +19,20 @@ export function useNotes() {
         }
     }
 
+    const renameNote = async (id: string, newName: string) => {
+        await noteService.rename(id, newName);
+    }
+
+    const removeNote = async (id: string) => {
+        await noteService.remove(id);
+    }
+
     return {
         notes,
         loading,
         error,
         fetchNotes,
+        renameNote,
+        removeNote,
     }
 }
