@@ -5,15 +5,16 @@ import ToastList from '@/components/layout/ToastList.vue';
 import { computed, onMounted } from 'vue';
 import { useNotes } from '@/composables/useNotes';
 import { useToast } from '@/composables/useToast';
-
 import { useContextMenu } from '@/composables/useContextMenu';
-
 import type { ContextAction } from '@/types/contextaction';
 import type { Note } from '@/types/note';
+import ActionModal from '@/components/ActionModal.vue';
+import { useModals } from '@/composables/useModals';
 
 const { successToast, errorToast, warningToast, infoToast } = useToast();
 const { notes, loading, error, fetchNotes, renameNote, removeNote } =
     useNotes();
+const { RenamePromise, DeletePromise } = useModals();
 
 onMounted(() => fetchNotes());
 const noteCount = computed(() => notes.value.length);
@@ -22,8 +23,13 @@ const actions: ContextAction<Note>[] = [
     {
         label: 'Rinomina',
         handler: async (note) => {
+            const new_name = await RenamePromise.start(
+                'Rinomina la nota',
+                note.name
+            );
+            if (!new_name) return;
             try {
-                await renameNote(note.id, 'La mia seconda nota');
+                await renameNote(note.id, new_name);
                 successToast('Rinomina effettuata', '');
             } catch (error) {
                 errorToast(
@@ -45,7 +51,21 @@ const actions: ContextAction<Note>[] = [
     },
     {
         label: 'Elimina',
-        handler: (note) => console.log('Elimina', note),
+        handler: async (note) => {
+            const confirm = await DeletePromise.start("Conferma elimina");
+            if (!confirm) return;
+            try {
+                await removeNote(note.id);
+                successToast('Nota eliminata', '');
+            } catch (error) {
+                errorToast(
+                    'Errore nella eliminazione della nota',
+                    (error as Error).message
+                );
+            } finally {
+                await fetchNotes();
+            }
+        },
         variant: 'warning',
     },
 ];
@@ -101,7 +121,9 @@ const handleAction = (action: ContextAction<Note>) => {
                 </div>
             </label>
             <p class="text-sm pt-2 text-gray-500 dark:text-neutral-500">
-                {{ noteCount }} {{ noteCount === 1 ? 'nota trovata' : 'note trovate' }} nella memoria collettiva
+                {{ noteCount }}
+                {{ noteCount === 1 ? 'nota trovata' : 'note trovate' }} nella
+                memoria collettiva
             </p>
         </div>
 
@@ -118,14 +140,14 @@ const handleAction = (action: ContextAction<Note>) => {
             />
         </ul>
 
-    <ContextMenu
-        v-if="noteMenu.isOpen.value"
-        :x="noteMenu.position.value.x"
-        :y="noteMenu.position.value.y"
-        :actions="actions"
-        @action-clicked="handleAction"
-        @close="noteMenu.close"
-    />
+        <ContextMenu
+            v-if="noteMenu.isOpen.value"
+            :x="noteMenu.position.value.x"
+            :y="noteMenu.position.value.y"
+            :actions="actions"
+            @action-clicked="handleAction"
+            @close="noteMenu.close"
+        />
     </div>
 
     <ToastList />
