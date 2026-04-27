@@ -3,13 +3,14 @@
 
     use Tests\TestCase;
     use App\Strategies\HtmlExport;
+    use Parsedown;
 
     class HtmlExportTest extends TestCase {
         private HtmlExport $strategy;
 
         protected function setUp(): void {
             parent::setUp();
-            $this->strategy = new HtmlExport();
+            $this->strategy = new HtmlExport(new Parsedown());
         }
 
         public function test_export_returns_content() : void {

@@ -5,8 +5,10 @@
     use Parsedown;
 
     class HtmlExport implements ExportStrategyInterface {
+        public function __construct(private readonly Parsedown $parser) { }
+
         public function export(string $content, string $title) : string {
-            $real_content = (new Parsedown())->text($content);  
+            $real_content = $this->parser->text($content);  
             $html_content = '
             <!DOCTYPE html>
             <html lang="it">
