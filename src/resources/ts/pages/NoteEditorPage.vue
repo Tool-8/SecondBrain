@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, useTemplateRef } from 'vue'
+import { ref, computed, onMounted, useTemplateRef, watch } from 'vue'
 import { marked } from 'marked'
+import { useToast } from '@/composables/useToast'
+
 import GeneralButton from '@/components/GeneralButton.vue'
 import AsideAI from '@/components/AsideAI.vue'
+import ToastList from '@/components/layout/ToastList.vue'
+
+const { warningToast } = useToast()
 
 type ViewMode = 'editor' | 'split' | 'render'
 type AiAction = 'summarize' | 'hats' | 'translate' | null
@@ -14,6 +19,7 @@ const viewMode = ref<ViewMode>('split')
 const isAiOpen = ref(false)
 const aiAction = ref<AiAction>(null)
 const selectedText = ref('')
+const isDirty = ref(false)
 
 const summarizeMode = ref<SummarizeMode>('short')
 const hatMode = ref<HatMode>('white')
@@ -43,6 +49,11 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Eius, iure rerum facere
 Lorem ipsum, dolor sit amet consectetur adipisicing elit. Illum porro aperiam laborum nobis repellat aliquid mollitia velit numquam, magni quo quisquam, temporibus et? Animi ipsum quibusdam repellendus obcaecati harum ipsam quos, tempora et odio deserunt eius numquam ut repellat deleniti est maxime quas recusandae illum dignissimos voluptatum voluptate autem consectetur? Temporibus aperiam error pariatur facere dicta, molestiae excepturi, officia, quia nihil repudiandae reiciendis cum nulla dolorum magni ex numquam sit recusandae autem. Enim fugiat, quos dolorum recusandae reprehenderit illo libero animi sint, porro ipsa ea quidem. Perspiciatis voluptates tenetur labore aliquid quis inventore magni, voluptatum fuga corporis, necessitatibus sunt cupiditate?
 `)
 const editorRef = useTemplateRef<HTMLElement>('editor')
+const originalContent = ref(noteContent.value)
+
+watch(noteContent, (val) => {
+    isDirty.value = val !== originalContent.value
+})
 
 marked.setOptions({
     gfm: true,
@@ -53,7 +64,14 @@ const renderedHtml = computed(() => marked.parse(noteContent.value))
 
 function handleEditorInput() {
     if (!editorRef.value) return
-    noteContent.value = editorRef.value.innerText
+
+    const newValue = editorRef.value.innerText
+
+    if (newValue !== noteContent.value) {
+        isDirty.value = true
+    }
+
+    noteContent.value = newValue
 }
 
 function setViewMode(mode: ViewMode) {
@@ -72,6 +90,10 @@ function openAiPanel(action: Exclude<AiAction, null>) {
     const text = getSelectedEditorText()
 
     if (!text) {
+        warningToast(
+            'Attenzione',
+            'Seleziona del testo prima di usare questa funzione AI.'
+        )
         return
     }
 
@@ -94,9 +116,28 @@ function handleAiRun(payload: {
     // chiamata backend
 }
 
+function saveNote() {
+    // chiamata backend
+
+    originalContent.value = noteContent.value
+    isDirty.value = false
+}
+
 onMounted(() => {
     if (!editorRef.value) return
     editorRef.value.innerText = noteContent.value
+})
+
+const wordCount = computed(() => {
+    if (!noteContent.value) return 0;
+
+    return noteContent.value.trim().split(/\s+/).filter(Boolean).length;
+})
+
+const charCount = computed(() => {
+    if (!noteContent.value) return 0;
+
+    return noteContent.value.length;
 })
 </script>
 
@@ -111,8 +152,16 @@ onMounted(() => {
                 <div>
                     <h1 class="font-bold text-2xl max-w-60">Nuova nota</h1>
                     <p class="font-jetbrains text-xs text-gray-500 dark:text-neutral-400">
-                        <span class="bg-green-500 dark:bg-green-400 w-2 h-2 inline-block rounded-3xl" id="note_save_status_icon"></span>
-                        <span id="note_save_status_text"> salvato</span>
+                        <span
+                            class="w-2 h-2 inline-block rounded-3xl"
+                            :class="isDirty 
+                            ? 'bg-yellow-500 dark:bg-yellow-400' 
+                            : 'bg-green-500 dark:bg-green-400'"
+                        ></span>
+
+                        <span>
+                            {{ isDirty ? ' non salvato' : ' salvato' }}
+                        </span>
                     </p>
                 </div>
     
@@ -149,7 +198,7 @@ onMounted(() => {
     
                 <!-- tasto salva -->
                 <div class="justify-self-end self-start">
-                    <GeneralButton label="Salva"/>
+                    <GeneralButton label="Salva" @click="saveNote"/>
                 </div>
             </header>
     
@@ -180,7 +229,10 @@ onMounted(() => {
     
                 <!-- contatore parole e lettere -->
                 <div class="font-jetbrains text-xs self-center ml-auto">
-                    <p>parole: <span>1000</span> lettere: <span>5000</span></p>
+                    <p>
+                        parole: <span>{{ wordCount }}</span>
+                        lettere: <span>{{ charCount }}</span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -222,4 +274,6 @@ onMounted(() => {
         @update:languageMode="languageMode = $event"
         @run="handleAiRun"
     />
+
+    <ToastList />
 </template>
