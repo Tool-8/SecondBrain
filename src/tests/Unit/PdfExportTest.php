@@ -3,13 +3,14 @@
 
     use Tests\TestCase;
     use App\Strategies\PdfExport;
+    use Parsedown;
 
     class PdfExportTest extends TestCase {
         private PdfExport $strategy;
 
         protected function setUp(): void {
             parent::setUp();
-            $this->strategy = new PdfExport();
+            $this->strategy = new PdfExport(new Parsedown());
         }
 
         public function test_export_returns_content() : void {

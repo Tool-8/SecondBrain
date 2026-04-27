@@ -6,8 +6,10 @@
     use Parsedown;
 
     class PdfExport implements ExportStrategyInterface {
+        public function __construct(private readonly Parsedown $parser){ }
+        
         public function export(string $content, string $title) : string {
-            $real_content = (new Parsedown())->text($content);  
+            $real_content = $this->parser->text($content);  
             $html = '
             <!DOCTYPE html>
             <html lang="it">

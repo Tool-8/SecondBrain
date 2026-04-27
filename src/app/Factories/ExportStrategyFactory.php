@@ -7,13 +7,14 @@
     use App\Strategies\MdExport;
     use App\Strategies\PdfExport;
     use InvalidArgumentException;
+    use Parsedown;
 
     class ExportStrategyFactory {
         public function make(string $format) : ExportStrategyInterface {
             return match ($format) {
                 'md' => new MdExport(),
-                'html' => new HtmlExport(),
-                'pdf' => new PdfExport(),
+                'html' => new HtmlExport(new Parsedown()),
+                'pdf' => new PdfExport(new Parsedown()),
         
                 default => throw new InvalidArgumentException("Unknown format: {$format}"),
             };
