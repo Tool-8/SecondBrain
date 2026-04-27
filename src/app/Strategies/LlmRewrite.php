@@ -23,6 +23,7 @@
 
             $prompt  = "Riscrivi il testo applicando le seguenti istruzioni:\n";
             $prompt .= implode("\n", array_map(fn($s) => '- ' . $prompts[$s], $styles));
+            $prompt .= 'Non aggiungere introduzioni, commenti o frasi come “Ecco il risultato”. Restituisci esclusivamente il testo generato.';
             $response = $this->processor->make($prompt, $text);
             $this->processor->handleError($response);
 
