@@ -41,9 +41,9 @@
                 $result = $this->service->process($validated['content'], $validated['action'], $validated['options'] ?? []);
                 return response()->json(['result' => $result], 200);
             } catch (RuntimeException $e) {
-                return response()->json(['error' => $e->getMessage()], 502);
+                return response()->json(['message' => $e->getMessage()], 502);
             } catch (InvalidArgumentException $e) {
-                return response()->json(['error' => $e->getMessage()], 400);
+                return response()->json(['message' => $e->getMessage()], 400);
             }
         }
     }

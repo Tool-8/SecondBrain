@@ -12,7 +12,7 @@
         public function process(Context $context): string {
             
             $text = $context->getText();
-            $prompt = '';
+            $prompt = 'Non aggiungere introduzioni, commenti o frasi come “Ecco il risultato”. Restituisci esclusivamente il testo generato.';
             $response = $this->processor->make($prompt, $text);
             $this->processor->handleError($response);
 
