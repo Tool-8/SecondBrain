@@ -13,7 +13,7 @@
             
             $text = $context->getText();
             $lang = $context->getOptions()['lang'];
-            $prompt = 'Traduci il seguente testo in ' . $lang .'. Mantieni il tono, lo stile e il contesto. Se ci sono espressioni idiomatiche, adattale in modo naturale per un madrelingua:';
+            $prompt = 'Traduci il seguente testo in ' . $lang .'. Mantieni il tono, lo stile e il contesto. Se ci sono espressioni idiomatiche, adattale in modo naturale per un madrelingua. Non aggiungere introduzioni, commenti o frasi come “Ecco il risultato”. Restituisci esclusivamente il testo generato.';
             $response = $this->processor->make($prompt, $text);
             $this->processor->handleError($response);
 
