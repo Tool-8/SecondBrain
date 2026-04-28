@@ -8,13 +8,21 @@ import { useToast } from '@/composables/useToast';
 import { useContextMenu } from '@/composables/useContextMenu';
 import type { ContextAction } from '@/types/contextaction';
 import type { Note } from '@/types/note';
-import ActionModal from '@/components/ActionModal.vue';
 import { useModals } from '@/composables/useModals';
 
 const { successToast, errorToast, warningToast, infoToast } = useToast();
-const { notes, loading, error, fetchNotes, renameNote, removeNote } =
-    useNotes();
-const { RenamePromise, DeletePromise } = useModals();
+const {
+    notes,
+    loading,
+    error,
+    fetchNotes,
+    renameNote,
+    removeNote,
+    storeNote,
+    cloneNote,
+    exportNote,
+} = useNotes();
+const { RenamePromise, DeletePromise, ClonePromise } = useModals();
 
 onMounted(() => fetchNotes());
 const noteCount = computed(() => notes.value.length);
@@ -23,10 +31,7 @@ const actions: ContextAction<Note>[] = [
     {
         label: 'Rinomina',
         handler: async (note) => {
-            const new_name = await RenamePromise.start(
-                'Rinomina la nota',
-                note.name
-            );
+            const new_name = await RenamePromise.start(note.name);
             if (!new_name) return;
             try {
                 await renameNote(note.id, new_name);
@@ -43,16 +48,73 @@ const actions: ContextAction<Note>[] = [
     },
     {
         label: 'Clona',
-        handler: (note) => console.log('Clona', note),
+        handler: async (note) => {
+            const clone_name = await ClonePromise.start(
+                note.name + ' - ' + new Date().toLocaleString()
+            );
+            if (!clone_name) return;
+            try {
+                await cloneNote(note.id, clone_name);
+                successToast('Clonazione effettuata', '');
+            } catch (error) {
+                errorToast(
+                    'Errore nella clonazione della nota',
+                    (error as Error).message
+                );
+            } finally {
+                await fetchNotes();
+            }
+        },
     },
     {
-        label: 'Esporta',
-        handler: (note) => console.log('Esporta', note),
+        label: 'Esporta in PDF',
+        handler: async (note) => {
+            try {
+                await exportNote(note.id, 'pdf');
+            } catch (error) {
+                errorToast(
+                    'Errore nella generazione del PDF',
+                    (error as Error).message
+                );
+            } finally {
+                await fetchNotes();
+            }
+        },
+    },
+    {
+        label: 'Esporta in MD',
+        handler: async (note) => {
+            try {
+                await exportNote(note.id, 'md');
+            } catch (error) {
+                errorToast(
+                    'Errore nella generazione del MD',
+                    (error as Error).message
+                );
+            } finally {
+                await fetchNotes();
+            }
+        },
+    },
+    {
+        label: 'Esporta in HTML',
+        handler: async (note) => {
+            try {
+                await exportNote(note.id, 'html');
+            } catch (error) {
+                errorToast(
+                    'Errore nella generazione del HTML',
+                    (error as Error).message
+                );
+            } finally {
+                await fetchNotes();
+            }
+        },
     },
     {
         label: 'Elimina',
         handler: async (note) => {
-            const confirm = await DeletePromise.start("Conferma elimina");
+            const confirm = await DeletePromise.start();
             if (!confirm) return;
             try {
                 await removeNote(note.id);

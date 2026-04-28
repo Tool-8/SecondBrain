@@ -5,6 +5,10 @@ export type Note = {
     creation: string;
 };
 
+export type NoteWithContent = Note & {
+    content: string;
+}
+
 // JSON ritornato dal backend
 export type NoteAPI = {
     id: string;

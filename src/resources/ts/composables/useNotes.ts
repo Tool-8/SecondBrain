@@ -27,6 +27,19 @@ export function useNotes() {
         await noteService.remove(id);
     }
 
+    const storeNote = async (name: string, content: string) => {
+        await noteService.store(name, content);
+    }
+
+    const cloneNote = async (id: string, name: string) => {
+        const cloned_note = await noteService.get(id);
+        await storeNote(name, cloned_note.content);
+    }
+
+    const exportNote = async (id: string, format: 'pdf' | 'md' | 'html') => {
+        await noteService.export(id, format);
+    }
+
     return {
         notes,
         loading,
@@ -34,5 +47,8 @@ export function useNotes() {
         fetchNotes,
         renameNote,
         removeNote,
+        storeNote,
+        cloneNote,
+        exportNote,
     }
 }

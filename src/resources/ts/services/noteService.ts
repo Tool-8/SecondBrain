@@ -1,5 +1,5 @@
 import apiClient from '@/services/apiClient';
-import type { Note, NoteAPI } from '@/types/note';
+import type { Note, NoteWithContent, NoteAPI } from '@/types/note';
 import { serviceHandler } from '@/utils/serviceHandler';
 
 function formatDate(timestamp: string): string {
@@ -28,10 +28,22 @@ function mapNote(raw: NoteAPI): Note {
     };
 }
 
+function mapNoteWithContent(raw: NoteAPI): NoteWithContent {
+    return {
+        ...mapNote(raw),
+        content: raw.content_md,
+    };
+}
+
 export const noteService = {
     getAll: async (): Promise<Note[]> => {
         const response = await apiClient.get('/notes');
         return response.data.map(mapNote);
+    },
+    get: async (id: string): Promise<NoteWithContent> => {
+        return serviceHandler(() =>
+            apiClient.get('/notes/' + id).then(response => mapNoteWithContent(response.data))
+        );
     },
     rename: async (id: string, newName: string): Promise<Note> => {
         return serviceHandler(() =>
@@ -43,5 +55,34 @@ export const noteService = {
     remove: async (id: string): Promise<void> => {
         return serviceHandler(() =>
             apiClient.delete('/notes/' + id));
+    },
+    store: async (name: string, content: string): Promise<Note> => {
+        return serviceHandler(() =>
+            apiClient.post('/notes', {
+                title: name,
+                contend_md: content,
+            }).then(response => mapNote(response.data))
+        );
+    },
+    export: async (id: string, format: 'pdf' | 'md' | 'html'): Promise<void> => {
+        return serviceHandler(() =>
+            apiClient.get('/notes/' + id + '/export', {
+                params: {
+                    format,
+                },
+                responseType: 'blob',
+            }).then(response => {
+                const disposition = response.headers['content-disposition'];
+                const filename =
+                    disposition?.split('filename=')[1]?.replace(/"/g, '') ??
+                    `nota.${format}`;
+                const url = URL.createObjectURL(response.data);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', filename);
+                link.click();
+                URL.revokeObjectURL(url);
+            })
+        )
     }
 };
