@@ -6,6 +6,7 @@
     use Illuminate\Support\Str;
     use RuntimeException;
     use Tests\TestCase;
+    use App\Models\Note;
     use Mockery;
 
     class NoteRepositoryTest extends TestCase {
@@ -21,13 +22,12 @@
         public function test_creates_a_note()
         {
             $note = $this->repo->create('Test title', '# Content');
-
-            $this->assertArrayHasKey('id', $note);
-            $this->assertEquals('Test title', $note['title']);
-            $this->assertEquals('# Content', $note['content_md']);
+            $this->assertInstanceOf(Note::class, $note);
+            $this->assertEquals('Test title', $note->getTitle());
+            $this->assertEquals('# Content', $note->getContent());
 
             $this->assertTrue(
-                Storage::disk('local')->exists("notes/{$note['id']}.md")
+                Storage::disk('local')->exists("notes/{$note->getId()}.md")
             );
         }
 
@@ -35,11 +35,11 @@
         {
             $created = $this->repo->create('My note', '# Hello');
 
-            $note = $this->repo->get($created['id']);
+            $note = $this->repo->get($created->getId());
 
-            $this->assertEquals($created['id'], $note['id']);
-            $this->assertEquals('My note', $note['title']);
-            $this->assertEquals('# Hello', trim($note['content_md']));
+            $this->assertEquals($created->getId(), $note->getId());
+            $this->assertEquals('My note', $note->getTitle());
+            $this->assertEquals('# Hello', trim($note->getContent()));
         }
 
         public function test_throws_if_note_not_found_on_get()
@@ -54,12 +54,12 @@
         {
             $created = $this->repo->create('Old', '# Old content');
             sleep(1);
-            $updated = $this->repo->update($created['id'], 'New', '# New content');
+            $updated = $this->repo->update($created->getId(), 'New', '# New content');
 
-            $this->assertEquals('New', $updated['title']);
-            $this->assertEquals('# New content', $updated['content_md']);
-            $this->assertEquals($created['created_at'], $updated['created_at']);
-            $this->assertNotEquals($created['updated_at'], $updated['updated_at']);
+            $this->assertEquals('New', $updated->getTitle());
+            $this->assertEquals('# New content', $updated->getContent());
+            $this->assertEquals($created->getCreatedAt(), $updated->getCreatedAt());
+            $this->assertNotEquals($created->getUpdatedAt(), $updated->getUpdatedAt());
         }
 
         public function test_throws_if_note_not_found_on_update()
@@ -74,10 +74,10 @@
         {
             $note = $this->repo->create('To delete', 'content');
 
-            $this->repo->delete($note['id']);
+            $this->repo->delete($note->getId());
 
             $this->assertFalse(
-                Storage::disk('local')->exists("notes/{$note['id']}.md")
+                Storage::disk('local')->exists("notes/{$note->getId()}.md")
             );
         }
 
@@ -105,32 +105,47 @@
 
         public function test_lists_notes()
         {
+            $firstDate = now()->subDay();
+            $secondDate = now();
+        
+            $this->travelTo($firstDate); //freeze time
             $note1 = $this->repo->create('First', 'A');
-            sleep(1);
+            
+            $this->travelTo($secondDate); //freeze time
             $note2 = $this->repo->create('Second', 'B');
 
             $list = $this->repo->list();
 
             $this->assertCount(2, $list);
-            $this->assertEquals($list[0]["id"], $note2["id"]);
-            $this->assertEquals($list[0]["title"], "Second");
-            $this->assertEquals($list[0]["created_at"], $note2["created_at"]);
-            $this->assertEquals($list[0]["updated_at"], $note2["updated_at"]);
-            $this->assertEquals($list[1]["id"], $note1["id"]);
-            $this->assertEquals($list[1]["title"], "First");
-            $this->assertEquals($list[1]["created_at"], $note1["created_at"]);
-            $this->assertEquals($list[1]["updated_at"], $note1["updated_at"]);
+            $this->assertEquals($list[0]->getId(), $note2->getId());
+            $this->assertEquals($list[0]->getTitle(), $note2->getTitle());
+            $this->assertEquals($list[0]->getCreatedAt(), $note2->getCreatedAt());
+            $this->assertEquals($list[0]->getUpdatedAt(), $note2->getUpdatedAt());
+            $this->assertEquals($list[1]->getId(), $note1->getId());
+            $this->assertEquals($list[1]->getTitle(), $note1->getTitle());
+            $this->assertEquals($list[1]->getCreatedAt(), $note1->getCreatedAt());
+            $this->assertEquals($list[1]->getUpdatedAt(), $note1->getUpdatedAt());
+
+            $this->travelBack();
         }
 
         public function test_orders_notes_by_updated_at_desc()
         {
+            $firstDate = now()->subDay();
+            $secondDate = now();
+
+            $this->travelTo($firstDate); //freeze time
+            
             $n1 = $this->repo->create('First', 'A');
-            sleep(1);
+
+            $this->travelTo($secondDate);
             $n2 = $this->repo->create('Second', 'B');
 
             $list = $this->repo->list();
 
-            $this->assertEquals($n2['id'], $list[0]['id']);
+            $this->assertEquals($n2->getId(), $list[0]->getId());
+
+            $this->travelBack();
         }
 
         public function test_checks_if_title_is_used()
@@ -147,7 +162,7 @@
             $note = $this->repo->create('Same', 'x');
 
             $this->assertFalse(
-                $this->repo->isTitleUsed('Same', $note['id'])
+                $this->repo->isTitleUsed('Same', $note->getId())
             );
         }
 
@@ -170,7 +185,7 @@
 
             $note = $this->repo->get($id);
 
-            $this->assertEquals('My Title', $note['title']);
+            $this->assertEquals('My Title', $note->getTitle());
         }
 
         public function test_falls_back_to_default_title()
@@ -184,7 +199,7 @@
 
             $note = $this->repo->get($id);
 
-            $this->assertEquals('Note ' . substr($id, 0, 8), $note['title']);
+            $this->assertEquals('Note ' . substr($id, 0, 8), $note->getTitle());
         }
 
         public function test_parses_front_matter_correctly()
@@ -206,10 +221,10 @@
 
             $note = $this->repo->get($id);
 
-            $this->assertEquals('Hello', $note['title']);
-            $this->assertEquals('2020-01-01', $note['created_at']);
-            $this->assertEquals('2020-01-02', $note['updated_at']);
-            $this->assertEquals('Body', trim($note['content_md']));
+            $this->assertEquals('Hello', $note->getTitle());
+            $this->assertEquals('2020-01-01', $note->getCreatedAt());
+            $this->assertEquals('2020-01-02', $note->getUpdatedAt());
+            $this->assertEquals('Body', trim($note->getContent()));
         }
     }
 

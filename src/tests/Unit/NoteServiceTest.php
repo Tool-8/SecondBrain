@@ -7,6 +7,7 @@
     use PHPUnit\Framework\MockObject\MockObject;
     use RuntimeException;
     use Tests\TestCase;
+    use App\Models\Note;
 
     class NoteServiceTest extends TestCase
     {
@@ -22,8 +23,8 @@
 
         public function test_list_returns_array_from_repository(): void {
             $expected = [
-                ['id' => 'abc', 'title' => 'Nota 1', 'updated_at' => '2024-01-01'],
-                ['id' => 'def', 'title' => 'Nota 2', 'updated_at' => '2024-01-02'],
+                new Note('abc', 'Nota 1', '# Prima Nota'),
+                new Note('def', 'Nota 2', '# Second Nota')
             ];
 
             $this->repository
@@ -34,10 +35,11 @@
             $result = $this->service->list();
 
             $this->assertSame($expected, $result);
+            $this->assertInstanceOf(Note::class, $result[0]) ;
         }
 
         public function test_get_returns_note_from_repository(): void {
-            $expected = ['id' => 'abc', 'title' => 'Nota', 'content_md' => 'Contenuto'];
+            $expected = new Note('abc', 'Nota', 'Contenuto');
 
             $this->repository
                 ->expects($this->once())
@@ -46,7 +48,7 @@
                 ->willReturn($expected);
 
             $result = $this->service->get('abc');
-
+            $this->assertInstanceOf(Note::class, $result);
             $this->assertSame($expected, $result);
         }
 
@@ -62,7 +64,7 @@
         }
 
         public function test_create_returns_note_when_title_is_available(): void {
-            $expected = ['id' => 'abc', 'title' => 'Nuova nota', 'content_md' => ''];
+            $expected = new Note('abc', 'Nuova nota', '');
 
             $this->repository
                 ->method('isTitleUsed')
@@ -76,7 +78,8 @@
                 ->willReturn($expected);
 
             $result = $this->service->create('Nuova nota', '');
-
+            
+            $this->assertInstanceOf(Note::class, $result);
             $this->assertSame($expected, $result);
         }
 
@@ -97,7 +100,7 @@
         }
 
         public function test_update_returns_note_when_title_is_available(): void {
-            $expected = ['id' => 'abc', 'title' => 'Titolo aggiornato', 'content_md' => 'Nuovo contenuto'];
+            $expected = new Note('abc', 'Titolo aggiornato', 'Nuovo contenuto');
 
             $this->repository
                 ->method('isTitleUsed')
@@ -112,6 +115,7 @@
 
             $result = $this->service->update('abc', 'Titolo aggiornato', 'Nuovo contenuto');
 
+            $this->assertInstanceOf(Note::class, $result);
             $this->assertSame($expected, $result);
         }
 
@@ -132,7 +136,7 @@
         }
 
         public function test_update_allows_same_title_on_same_note(): void {
-            $expected = ['id' => 'abc', 'title' => 'Stesso titolo', 'content_md' => 'Contenuto'];
+            $expected = new Note('abc', 'Stesso titolo', 'Contenuto');
 
             $this->repository
                 ->method('isTitleUsed')
@@ -147,6 +151,7 @@
 
             $result = $this->service->update('abc', 'Stesso titolo', 'Contenuto');
 
+            $this->assertInstanceOf(Note::class, $result);
             $this->assertSame($expected, $result);
         }
 

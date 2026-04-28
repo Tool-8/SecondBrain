@@ -2,12 +2,24 @@
     namespace App\Strategies;
 
     use App\Strategies\ExportStrategyInterface;
-    use App\Strategies\HtmlExport;
     use Barryvdh\DomPDF\Facade\Pdf;
+    use Parsedown;
 
     class PdfExport implements ExportStrategyInterface {
         public function export(string $content, string $title) : string {
-            $html = (new HtmlExport)->export($content, $title);
+            $real_content = (new Parsedown())->text($content);  
+            $html = '
+            <!DOCTYPE html>
+            <html lang="it">
+            <head>
+                <meta charset="UTF-8">
+                <title>' .   $title  . '</title>
+            </head>
+            <body>
+                ' . $real_content . '
+            </body>
+            </html>
+            ';
             return Pdf::loadHTML($html)->output();
         }
 

@@ -6,6 +6,7 @@
     use Illuminate\Http\Request;
     use Illuminate\Http\JsonResponse;
     use RuntimeException;
+    use App\Models\Note;
 
     class NoteController extends Controller
     {
@@ -16,13 +17,19 @@
 
         public function index(): JsonResponse
         {
-            return response()->json($this->noteService->list());
+            $notes = $this->noteService->list();
+
+            $data = array_map(fn($note) => $note->getData(), $notes);
+
+            return response()->json(array_map(fn(Note $note) => $note->getData(), $notes));
+
+            // return response()->json($data);
         }
 
         public function show(string $id): JsonResponse
         {
             try {
-                return response()->json($this->noteService->get($id));
+                return response()->json($this->noteService->get($id)->getData());
             } catch (RuntimeException $e) {
                 return $this->mapError($e);
             }
@@ -37,7 +44,7 @@
 
             try {
                 return response()->json(
-                    $this->noteService->create($data['title'], $data['content_md'] ?? ''),
+                    $this->noteService->create($data['title'], $data['content_md'] ?? '')->getData(),
                     201
                 );
             } catch (RuntimeException $e) {
@@ -54,7 +61,7 @@
 
             try {
                 return response()->json(
-                    $this->noteService->update($id, $data['title'], $data['content_md'] ?? '')
+                    $this->noteService->update($id, $data['title'], $data['content_md'] ?? '')->getData()
                 );
             } catch (RuntimeException $e) {
                 return $this->mapError($e);
