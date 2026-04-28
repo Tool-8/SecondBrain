@@ -1,6 +1,7 @@
 import apiClient from '@/services/apiClient';
 import type { Note, NoteWithContent, NoteAPI } from '@/types/note';
 import { serviceHandler } from '@/utils/serviceHandler';
+import { title } from 'node:process';
 
 function formatDate(timestamp: string): string {
     const date = new Date(timestamp);
@@ -60,8 +61,16 @@ export const noteService = {
         return serviceHandler(() =>
             apiClient.post('/notes', {
                 title: name,
-                contend_md: content,
+                content_md: content,
             }).then(response => mapNote(response.data))
+        );
+    },
+    update: async (id: string, title: string, content: string): Promise<Note> => {
+        return serviceHandler(() =>
+            apiClient.put('/notes/' + id, {
+                title: title,
+                content_md: content,
+            }).then(response => mapNoteWithContent(response.data))
         );
     },
     export: async (id: string, format: 'pdf' | 'md' | 'html'): Promise<void> => {

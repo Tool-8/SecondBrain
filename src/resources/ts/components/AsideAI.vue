@@ -88,7 +88,7 @@ function runAction() {
                 </div>
             </div>
 
-            <div v-if="action === 'summarize'" class="flex justify-between items-center text-sm">
+            <div v-if="action === 'summarize'" class="flex justify-between items-center text-sm" hidden>
                 <p>Lunghezza</p>
                 <select
                 class="rounded border border-gray-300 px-4 py-1 text-sm dark:bg-neutral-800"

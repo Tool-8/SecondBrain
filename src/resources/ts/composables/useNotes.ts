@@ -1,5 +1,5 @@
 import { noteService } from "@/services/noteService";
-import type { Note } from "@/types/note";
+import type { Note, NoteWithContent } from "@/types/note";
 import { ref } from 'vue';
 
 export function useNotes() {
@@ -17,6 +17,14 @@ export function useNotes() {
         } finally {
             loading.value = false;
         }
+    }
+
+    const getNote = async (id: string) : Promise<NoteWithContent> => {
+        return await noteService.get(id);
+    }
+
+    const saveNote = async (id: string, name: string, content: string) => {
+        return await noteService.update(id, name, content);
     }
 
     const renameNote = async (id: string, newName: string) => {
@@ -50,5 +58,7 @@ export function useNotes() {
         storeNote,
         cloneNote,
         exportNote,
+        getNote,
+        saveNote,
     }
 }

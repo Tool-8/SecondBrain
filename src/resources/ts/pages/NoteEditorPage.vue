@@ -2,12 +2,17 @@
 import { ref, computed, onMounted, useTemplateRef, watch } from 'vue'
 import { marked } from 'marked'
 import { useToast } from '@/composables/useToast'
+import { useRoute } from 'vue-router';
+import { useNotes } from '@/composables/useNotes'
 
 import GeneralButton from '@/components/GeneralButton.vue'
 import AsideAI from '@/components/AsideAI.vue'
 import ToastList from '@/components/layout/ToastList.vue'
+import { title } from 'node:process';
 
-const { warningToast } = useToast()
+const { warningToast, successToast } = useToast();
+const { getNote, saveNote } = useNotes();
+const route = useRoute();
 
 type ViewMode = 'editor' | 'split' | 'render'
 type AiAction = 'summarize' | 'hats' | 'translate' | null
@@ -25,29 +30,7 @@ const summarizeMode = ref<SummarizeMode>('short')
 const hatMode = ref<HatMode>('white')
 const languageMode = ref<LanguageMode>('en')
 
-const noteContent = ref(`**Oggetto**: Discussione su collaborazione con un gruppo universitario per lo sviluppo di un progetto
-
-## Punti principali trattati:
-
-1. **Introduzione all’idea del progetto**  
-È stata proposta l'idea di affidare la realizzazione di un progetto [descrivere brevemente il tipo di progetto, es. tecnologico, di ricerca, sociale, ecc.] a un gruppo di studenti universitari. L’obiettivo è coinvolgere i giovani talenti in un’iniziativa che permetta loro di sviluppare competenze pratiche, mentre noi beneficeremmo di nuove idee e approcci.
-
-2. **Definizione dei compiti**  
-Si è discusso delle attività specifiche da assegnare al gruppo. Questi includono:
-- Analisi preliminare del problema
-- Progettazione e sviluppo delle soluzioni
-- Presentazione dei risultati e report finale
-- Eventuale prototipazione o test di prodotto
-
-3. **Selezione del gruppo universitario**  
-È stato deciso di collaborare con [nome dell'università o dipartimento specifico], scegliendo un gruppo che abbia esperienza o interesse nell’ambito del progetto. Verranno contattati i professori di riferimento per selezionare i membri più adatti.
-
-## Conclusioni:  
-La riunione si è conclusa con un consenso unanime sull’approccio proposto. Verranno presi i prossimi passi per avviare la collaborazione e definire i dettagli operativi.
-
-Lorem ipsum dolor sit amet consectetur adipisicing elit. Eius, iure rerum facere numquam dicta nobis voluptas, ut voluptates accusamus eligendi aspernatur a saepe repellendus, laboriosam repudiandae at perferendis? Totam, ullam?
-Lorem ipsum, dolor sit amet consectetur adipisicing elit. Illum porro aperiam laborum nobis repellat aliquid mollitia velit numquam, magni quo quisquam, temporibus et? Animi ipsum quibusdam repellendus obcaecati harum ipsam quos, tempora et odio deserunt eius numquam ut repellat deleniti est maxime quas recusandae illum dignissimos voluptatum voluptate autem consectetur? Temporibus aperiam error pariatur facere dicta, molestiae excepturi, officia, quia nihil repudiandae reiciendis cum nulla dolorum magni ex numquam sit recusandae autem. Enim fugiat, quos dolorum recusandae reprehenderit illo libero animi sint, porro ipsa ea quidem. Perspiciatis voluptates tenetur labore aliquid quis inventore magni, voluptatum fuga corporis, necessitatibus sunt cupiditate?
-`)
+const noteContent = ref('')
 const editorRef = useTemplateRef<HTMLElement>('editor')
 const originalContent = ref(noteContent.value)
 
@@ -116,16 +99,30 @@ function handleAiRun(payload: {
     // chiamata backend
 }
 
-function saveNote() {
-    // chiamata backend
+async function saveTheNote() {
+    try {
+        const id = route.params.id as string
+        const note = await getNote(route.params.id as string);
+
+        await saveNote(id, note.name, noteContent.value)
+        successToast('Nota salvata', '');
+    } catch (error) {
+        warningToast('Errore', (error as Error).message);
+    }
 
     originalContent.value = noteContent.value
     isDirty.value = false
 }
 
-onMounted(() => {
-    if (!editorRef.value) return
-    editorRef.value.innerText = noteContent.value
+onMounted(async () => {
+    const note = await getNote(route.params.id as string);
+
+    noteContent.value = note.content
+    originalContent.value = note.content
+
+    if (editorRef.value) {
+        editorRef.value.innerText = note.content
+    }
 })
 
 const wordCount = computed(() => {
@@ -198,7 +195,7 @@ const charCount = computed(() => {
     
                 <!-- tasto salva -->
                 <div class="justify-self-end self-start">
-                    <GeneralButton label="Salva" @click="saveNote"/>
+                    <GeneralButton label="Salva" @click="saveTheNote"/>
                 </div>
             </header>
     

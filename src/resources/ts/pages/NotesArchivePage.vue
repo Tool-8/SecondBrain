@@ -194,7 +194,8 @@ const handleAction = (action: ContextAction<Note>) => {
         <ul v-else class="pt-3 space-y-4">
             <NoteArchiveCard
                 v-for="note in notes"
-                :key="note.name"
+                :key="note.id"
+                :id="note.id"
                 :name="note.name"
                 :last_edit="note.last_edit"
                 :creation="note.creation"
