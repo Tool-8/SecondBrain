@@ -91,7 +91,7 @@ const icon = computed(() => toastIconMap[props.type]);
             </div>
 
             <button
-                :class="`rounded-sm border ${toastCancelButtonColorMap[type]} p-2 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white focus:outline-none disabled:pointer-events-auto disabled:opacity-50`"
+                :class="`cursor-pointer rounded-sm ${toastCancelButtonColorMap[type]} p-2 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white focus:outline-none disabled:pointer-events-auto disabled:opacity-50`"
                 @click="$emit('close')"
             >
                 <IconClose size="14" color="currentColor" />

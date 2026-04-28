@@ -6,8 +6,17 @@ const { toasts, removeToast } = useToast();
 
 <template>
     <div class="fixed top-3 right-3 z-50 w-90">
-        <TransitionGroup name="toastlist" tag="ul"
-            class="flex flex-col gap-3" appear
+        <TransitionGroup 
+            name="toastlist" 
+            tag="ul"
+            class="flex flex-col gap-3" 
+            enter-active-class="transition-all duration-300 ease-out"
+            enter-from-class="translate-x-full opacity-0"
+            enter-to-class="translate-x-0 opacity-100"
+            leave-active-class="transition-all duration-300 ease-out"
+            leave-from-class="translate-x-0 opacity-100"
+            leave-to-class="translate-x-full opacity-0"
+            appear
         >
             <li v-for="toast in toasts" :key="toast.id">
                 <ActionToast
@@ -20,12 +29,3 @@ const { toasts, removeToast } = useToast();
         </TransitionGroup>
     </div>
 </template>
-
-<style scoped>
-.toastlist-enter-active {
-    animation: slide-in 0.3s ease-out;
-}
-.toastlist-leave-active {
-    animation: slide-out 0.3s ease-out;
-}
-</style>

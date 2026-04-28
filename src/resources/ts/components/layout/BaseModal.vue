@@ -10,7 +10,7 @@ const props = defineProps<{
         class="fixed inset-0 z-50 grid place-content-center bg-black/50 p-4"
     >
         <div
-            class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-900"
+            class="w-full max-w-xl min-w-100 rounded-lg bg-white p-6 shadow-lg dark:bg-neutral-900 dark:text-white"
         >
             <slot name="header">
                 <h2

@@ -9,7 +9,8 @@ type Toast = {
     type: ToastType;
 };
 
-const defaultTimeout = 5000;
+const defaultTimeout = 1000 * 5; // 5 secondi
+const defaultErrorTimeout = 1000 * 60 * 60; // 1 ora
 
 const toasts = ref<Toast[]>([]);
 
@@ -40,7 +41,7 @@ export function useToast() {
         updateState(title, message, 'success', timeout);
     }
 
-    function errorToast(title: string, message: string, timeout: number = defaultTimeout) {
+    function errorToast(title: string, message: string, timeout: number = defaultErrorTimeout) {
         updateState(title, message, 'error', timeout);
     }
 
