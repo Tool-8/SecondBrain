@@ -21,6 +21,7 @@ const {
     storeNote,
     cloneNote,
     exportNote,
+    importNote,
 } = useNotes();
 const { RenamePromise, DeletePromise, ClonePromise } = useModals();
 
@@ -50,7 +51,16 @@ const actions: ContextAction<Note>[] = [
         label: 'Clona',
         handler: async (note) => {
             const clone_name = await ClonePromise.start(
-                note.name + ' - ' + new Date().toLocaleString()
+                note.name +
+                    ' - ' +
+                    new Intl.DateTimeFormat('it-IT', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                    }).format(new Date())
             );
             if (!clone_name) return;
             try {
@@ -76,8 +86,6 @@ const actions: ContextAction<Note>[] = [
                     'Errore nella generazione del PDF',
                     (error as Error).message
                 );
-            } finally {
-                await fetchNotes();
             }
         },
     },
@@ -91,8 +99,6 @@ const actions: ContextAction<Note>[] = [
                     'Errore nella generazione del MD',
                     (error as Error).message
                 );
-            } finally {
-                await fetchNotes();
             }
         },
     },
@@ -106,8 +112,6 @@ const actions: ContextAction<Note>[] = [
                     'Errore nella generazione del HTML',
                     (error as Error).message
                 );
-            } finally {
-                await fetchNotes();
             }
         },
     },
@@ -140,6 +144,28 @@ const handleAction = (action: ContextAction<Note>) => {
 
     action.handler?.(note);
     noteMenu.close();
+};
+
+const importEvent = async (event: Event) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) {
+        errorToast(
+            "Errore nell'importazione della nota",
+            'Nessun file selezionato'
+        );
+        return;
+    }
+
+    try {
+        await importNote(file);
+    } catch (error) {
+        errorToast(
+            "Errore nell'importazione della nota",
+            (error as Error).message
+        );
+    } finally {
+        await fetchNotes();
+    }
 };
 </script>
 
@@ -182,6 +208,7 @@ const handleAction = (action: ContextAction<Note>) => {
                     />
                 </div>
             </label>
+            <input type="file" @change="importEvent" accept=".md" />
             <p class="text-sm pt-2 text-gray-500 dark:text-neutral-500">
                 {{ noteCount }}
                 {{ noteCount === 1 ? 'nota trovata' : 'note trovate' }} nella
