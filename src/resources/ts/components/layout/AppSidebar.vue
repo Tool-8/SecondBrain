@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import NavItem from './navigation/NavItem.vue';
 import NavButton from './navigation/NavButton.vue';
-import { ref, watch  } from 'vue';
-import { useRoute } from 'vue-router'
+import { ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import IconZucchetti from '@/components/icons/IconZucchetti.vue';
 
-const route = useRoute()
+const route = useRoute();
 
-const isOpen = ref(!route.path.startsWith('/notes'))
+const isOpen = ref(!route.path.startsWith('/notes'));
 
 const toggleSidebar = () => {
     isOpen.value = !isOpen.value;
@@ -15,13 +16,13 @@ const toggleSidebar = () => {
 watch(
     () => route.path,
     (newPath) => {
-        isOpen.value = !newPath.startsWith('/notes')
+        isOpen.value = !newPath.startsWith('/notes');
     }
-)
+);
 </script>
 
 <template>
-    <aside 
+    <aside
         class="flex h-screen flex-col justify-between border-e border-gray-100 bg-white dark:border-neutral-800 dark:bg-neutral-900 sticky top-0 relative transition-all duration-300 ease-in-out"
         :class="isOpen ? 'w-64' : 'w-0'"
     >
@@ -36,42 +37,54 @@ watch(
                 fill="currentColor"
                 viewBox="0 0 24 24"
             >
-                <path xmlns="http://www.w3.org/2000/svg" d="M12,15.5a1.993,1.993,0,0,1-1.414-.585L5.293,9.621,6.707,8.207,12,13.5l5.293-5.293,1.414,1.414-5.293,5.293A1.993,1.993,0,0,1,12,15.5Z"/>
+                <path
+                    xmlns="http://www.w3.org/2000/svg"
+                    d="M12,15.5a1.993,1.993,0,0,1-1.414-.585L5.293,9.621,6.707,8.207,12,13.5l5.293-5.293,1.414,1.414-5.293,5.293A1.993,1.993,0,0,1,12,15.5Z"
+                />
             </svg>
         </button>
-
 
         <div
             class="h-full overflow-hidden transition-opacity duration-200"
             :class="isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'"
         >
-
             <div class="px-4 py-6">
-                <span class="grid h-10 px-4 py-2 w-full rounded-lg text-lg text-gray-600 font-medium text-bold dark:text-neutral-100">
-                [SB] SecondBrain
-                </span>  
+                <span
+                    class="flex flex-row px-4 py-2 w-full rounded-lg text-lg text-gray-600 font-medium text-bold dark:text-neutral-100 gap-2 items-center"
+                >
+                    <IconZucchetti :size="35" /> SecondBrain
+                </span>
 
                 <ul class="mt-6 space-y-2">
                     <NavButton label="Nuova nota" to="/notes/new" />
-                    <br>
+                    <br />
                     <NavItem label="Archivio note" to="/" />
                 </ul>
             </div>
 
-            <div class="sticky inset-x-0 bottom-0 border-t border-gray-100 dark:border-neutral-800" hidden>
-                <a href="#" class="flex items-center gap-2 p-4 hover:bg-gray-50">
-                    <img alt="" src="https://images.unsplash.com/photo-1600486913747-55e5470d6f40?auto=format&amp;fit=crop&amp;q=80&amp;w=1160" class="size-10 rounded-full object-cover">
+            <div
+                class="sticky inset-x-0 bottom-0 border-t border-gray-100 dark:border-neutral-800"
+                hidden
+            >
+                <a
+                    href="#"
+                    class="flex items-center gap-2 p-4 hover:bg-gray-50"
+                >
+                    <img
+                        alt=""
+                        src="https://images.unsplash.com/photo-1600486913747-55e5470d6f40?auto=format&amp;fit=crop&amp;q=80&amp;w=1160"
+                        class="size-10 rounded-full object-cover"
+                    />
 
                     <div>
                         <p class="text-xs">
-                        <strong class="block font-medium">Don Joe</strong>
+                            <strong class="block font-medium">Don Joe</strong>
 
-                        <span> info@tool8.it </span>
+                            <span> info@tool8.it </span>
                         </p>
                     </div>
                 </a>
             </div>
-
         </div>
     </aside>
 </template>
