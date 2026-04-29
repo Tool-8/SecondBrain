@@ -14,7 +14,7 @@ const { RenamePromise, DeletePromise, ClonePromise } = useModals();
                     <span
                         class="text-sm font-medium text-gray-700 dark:text-gray-200"
                     >
-                        Nuovo Nome
+                        Nuovo nome
                     </span>
                     <input
                         type="text"

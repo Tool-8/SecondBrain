@@ -151,8 +151,8 @@ const charCount = computed(() => {
                     <p class="font-jetbrains text-xs text-gray-500 dark:text-neutral-400">
                         <span
                             class="w-2 h-2 inline-block rounded-3xl"
-                            :class="isDirty 
-                            ? 'bg-yellow-500 dark:bg-yellow-400' 
+                            :class="isDirty
+                            ? 'bg-yellow-500 dark:bg-yellow-400'
                             : 'bg-green-500 dark:bg-green-400'"
                         ></span>
 
@@ -161,7 +161,7 @@ const charCount = computed(() => {
                         </span>
                     </p>
                 </div>
-    
+
                 <!-- switch interfaccia editor | split | render -->
                 <div class="self-start flex items-center justify-between gap-2 px-1 py-1 rounded-xl bg-gray-100 border border-gray-50 shadow-xs font-medium dark:bg-neutral-800 dark:border-neutral-700">
                     <button
@@ -192,13 +192,13 @@ const charCount = computed(() => {
                         dark:[&[active]]:border-blue-300 dark:[&[active]]:bg-neutral-700 dark:[&[active]]:text-blue-300"
                     >Render</button>
                 </div>
-    
+
                 <!-- tasto salva -->
                 <div class="justify-self-end self-start">
                     <GeneralButton label="Salva" @click="saveTheNote"/>
                 </div>
             </header>
-    
+
             <!-- SUBHEADER -->
             <div class="flex px-6 py-1 border-b-1 border-gray-100 dark:border-neutral-800">
                 <!-- tasti stile font grassetto | italico | sottolineato -->
@@ -207,23 +207,23 @@ const charCount = computed(() => {
                     <button class="px-2 font-bold italic cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800" title="italico">I</button>
                     <button class="px-2 font-bold underline cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800" title="sottolineato">U</button>
                 </div>
-    
+
                 <!-- funzioni AI -->
                 <div class="px-4 flex gap-px text-sm font-jetbrains">
-                    <button 
+                    <button
                         class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                         @click="openAiPanel('summarize')"
                     >riassumi</button>
-                    <button 
+                    <button
                         class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                         @click="openAiPanel('hats')"
                     >cappelli</button>
-                    <button 
+                    <button
                         class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                         @click="openAiPanel('translate')"
                     >traduci</button>
                 </div>
-    
+
                 <!-- contatore parole e lettere -->
                 <div class="font-jetbrains text-xs self-center ml-auto">
                     <p>
@@ -233,23 +233,23 @@ const charCount = computed(() => {
                 </div>
             </div>
         </div>
-    
+
         <!-- VIEW CONTAINER -->
         <div id="view_container" class="flex w-full h-full divide-x-1 divide-gray-100 dark:divide-neutral-800 ">
             <!-- EDITOR -->
-            <section 
+            <section
                 v-show="viewMode === 'editor' || viewMode === 'split'"
-                id="editor" 
+                id="editor"
                 ref="editor"
-                class="p-6 flex-1 min-w-0 font-jetbrains h-full focus:outline-none" 
+                class="p-6 flex-1 min-w-0 font-jetbrains h-full focus:outline-none"
                 contenteditable="true"
                 @input="handleEditorInput"
             ></section>
-    
+
             <!-- RENDER -->
-            <section 
+            <section
                 v-show="viewMode === 'render' || viewMode === 'split'"
-                id="render" 
+                id="render"
                 class="p-6 flex-1 min-w-0 overflow-auto"
             >
                 <div class="prose max-w-none dark:prose-invert" v-html="renderedHtml"></div>
@@ -271,6 +271,4 @@ const charCount = computed(() => {
         @update:languageMode="languageMode = $event"
         @run="handleAiRun"
     />
-
-    <ToastList />
 </template>

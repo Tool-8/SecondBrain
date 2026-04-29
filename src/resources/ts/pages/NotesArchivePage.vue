@@ -212,6 +212,4 @@ const handleAction = (action: ContextAction<Note>) => {
             @close="noteMenu.close"
         />
     </div>
-
-    <ToastList />
 </template>

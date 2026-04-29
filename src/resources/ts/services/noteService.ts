@@ -65,7 +65,7 @@ export const noteService = {
             }).then(response => mapNote(response.data))
         );
     },
-    update: async (id: string, title: string, content: string): Promise<Note> => {
+    update: async (id: string, title: string, content: string): Promise<NoteWithContent> => {
         return serviceHandler(() =>
             apiClient.put('/notes/' + id, {
                 title: title,

@@ -19,11 +19,11 @@ export function useNotes() {
         }
     }
 
-    const getNote = async (id: string) : Promise<NoteWithContent> => {
+    const getNote = async (id: string): Promise<NoteWithContent> => {
         return await noteService.get(id);
     }
 
-    const saveNote = async (id: string, name: string, content: string) => {
+    const saveNote = async (id: string, name: string, content: string): Promise<NoteWithContent> => {
         return await noteService.update(id, name, content);
     }
 
