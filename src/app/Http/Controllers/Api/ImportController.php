@@ -21,6 +21,8 @@
                     'required', 
                     'max:10240'
                     ],
+                ], [
+                    'file.max' => 'File size must not exceed :max KB'
                 ]
             );
                 

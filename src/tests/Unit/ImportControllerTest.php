@@ -8,6 +8,7 @@
     use Illuminate\Http\UploadedFile;
     use InvalidArgumentException;
     use RuntimeException;
+    use Illuminate\Validation\ValidationException;
     use PHPUnit\Framework\MockObject\MockObject;
     use Tests\TestCase;
     use App\Models\Note;
@@ -72,6 +73,15 @@
             $this->assertSame(400, $response->getStatusCode());
             $this->assertSame('Title already used by another note', $response->getData(true)['message']);
         }
+        public function test_throw_exception_with_invalid_file_size(){
+            $this->expectException(ValidationException::class);
+            $file = UploadedFile::fake()->create('Test.md', 11000);
 
+            $request  = Request::create('/notes/import', 'POST', [
+                'file'      => $file
+                ]);
+
+            $this->controller->__invoke($request);
+        }
     } 
 ?>
