@@ -88,6 +88,14 @@ describe('ActionToast', () => {
         expect(wrapper.find('p').text()).toBe(message);
     });
 
+    // Test emit di close
+    it('emits the close event when the cancel button is pressed', () => {
+        const type: ToastType = 'success';
+        const wrapper = mount(ActionToast, { props: { title, message, type } });
+        wrapper.find('button').trigger('click');
+        expect(wrapper.emitted('close')).toBeTruthy();
+    })
+
     // Test toast di successo
     it('renders the correct color and icon for the success toast', () => {
         const type: ToastType = 'success';
