@@ -17,6 +17,7 @@
                 'content' => 'required|string',
                 'action'  => 'required|string|in:summarize,translate,rewrite,blackhat,bluehat,greenhat,redhat,whitehat,yellowhat,distant writing',
                 'options' => 'array',
+                'options.*' => 'in:style,lang',
                 'options.style'   => [
                 Rule::requiredIf($request->action === 'rewrite'),
                     'array',
@@ -35,7 +36,9 @@
                         'in:it,en,fr,de,es,pt',
                     ]),
                 ],
-            ]);
+                ],[
+                        'options.lang.in' => 'Translation in :input is not supported.'
+                    ]);
 
             try {
                 $result = $this->service->process($validated['content'], $validated['action'], $validated['options'] ?? []);
