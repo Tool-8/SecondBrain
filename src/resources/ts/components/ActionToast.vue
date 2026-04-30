@@ -70,12 +70,14 @@ const icon = computed(() => toastIconMap[props.type]);
     <div
         role="alert"
         :class="`rounded-md border p-4 shadow-sm ${toastColorMap[type]}`"
+        data-testid="toast-container"
     >
         <div class="flex items-start gap-4">
             <component
                 :is="icon"
                 size="26"
                 :color="toastIconColorMap[type]"
+                data-testid="toast-icon"
             />
 
             <div class="flex-1">

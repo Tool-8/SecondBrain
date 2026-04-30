@@ -25,4 +25,8 @@ export default defineConfig({
       '@': '/var/www/html/resources/ts',
     },
   },
+  test: {
+      globals: true,
+      environment: 'jsdom',
+  },
 });
