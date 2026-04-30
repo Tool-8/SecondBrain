@@ -2,13 +2,14 @@
 import NoteArchiveCard from '@/components/NoteArchiveCard.vue';
 import ContextMenu from '@/components/ContextMenu.vue';
 import ToastList from '@/components/layout/ToastList.vue';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useNotes } from '@/composables/useNotes';
 import { useToast } from '@/composables/useToast';
 import { useContextMenu } from '@/composables/useContextMenu';
 import type { ContextAction } from '@/types/contextaction';
 import type { Note } from '@/types/note';
 import { useModals } from '@/composables/useModals';
+import GeneralButton from '@/components/GeneralButton.vue';
 
 const { successToast, errorToast, warningToast, infoToast } = useToast();
 const {
@@ -21,6 +22,7 @@ const {
     storeNote,
     cloneNote,
     exportNote,
+    importNote,
 } = useNotes();
 const { RenamePromise, DeletePromise, ClonePromise } = useModals();
 
@@ -50,7 +52,16 @@ const actions: ContextAction<Note>[] = [
         label: 'Clona',
         handler: async (note) => {
             const clone_name = await ClonePromise.start(
-                note.name + ' - ' + new Date().toLocaleString()
+                note.name +
+                    ' - ' +
+                    new Intl.DateTimeFormat('it-IT', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                    }).format(new Date())
             );
             if (!clone_name) return;
             try {
@@ -76,8 +87,6 @@ const actions: ContextAction<Note>[] = [
                     'Errore nella generazione del PDF',
                     (error as Error).message
                 );
-            } finally {
-                await fetchNotes();
             }
         },
     },
@@ -91,8 +100,6 @@ const actions: ContextAction<Note>[] = [
                     'Errore nella generazione del MD',
                     (error as Error).message
                 );
-            } finally {
-                await fetchNotes();
             }
         },
     },
@@ -106,8 +113,6 @@ const actions: ContextAction<Note>[] = [
                     'Errore nella generazione del HTML',
                     (error as Error).message
                 );
-            } finally {
-                await fetchNotes();
             }
         },
     },
@@ -141,12 +146,51 @@ const handleAction = (action: ContextAction<Note>) => {
     action.handler?.(note);
     noteMenu.close();
 };
+
+const fileInput = ref<HTMLInputElement | null>(null);
+const importEvent = async (event: Event) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) {
+        errorToast(
+            "Errore nell'importazione della nota",
+            'Nessun file selezionato'
+        );
+        return;
+    }
+
+    try {
+        await importNote(file);
+    } catch (error) {
+        errorToast(
+            "Errore nell'importazione della nota",
+            (error as Error).message
+        );
+    } finally {
+        await fetchNotes();
+    }
+};
 </script>
 
 <template>
     <div class="p-6">
-        <h1 class="font-bold text-3xl pb-2">Archivio note</h1>
+        <header class="grid grid-cols-2 pb-2 pt-1">
+            <h1 class="font-bold text-3xl">Archivio note</h1>
 
+            <!-- tasto importa -->
+            <div class="justify-self-end self-start">
+                <input
+                    type="file"
+                    ref="fileInput"
+                    class="hidden"
+                    @change="importEvent"
+                    accept=".md"
+                />
+                <GeneralButton
+                    label="Importa nota"
+                    @click="fileInput?.click()"
+                />
+            </div>
+        </header>
         <div class="pt-5">
             <label for="Search">
                 <div class="relative group">

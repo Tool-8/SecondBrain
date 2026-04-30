@@ -93,5 +93,13 @@ export const noteService = {
                 URL.revokeObjectURL(url);
             })
         )
+    },
+    import: async (file: FormData): Promise<Note> => {
+        return serviceHandler(() =>
+            apiClient.post('/notes/import', file, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })).then(response => mapNote(response.data));
     }
 };

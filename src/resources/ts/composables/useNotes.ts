@@ -13,7 +13,7 @@ export function useNotes() {
         try {
             notes.value = await noteService.getAll();
         } catch (e) {
-            error.value = "Errore nel recupero dei note."
+            error.value = "Errore nel recupero delle note."
         } finally {
             loading.value = false;
         }
@@ -48,6 +48,13 @@ export function useNotes() {
         await noteService.export(id, format);
     }
 
+    const importNote = async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        await noteService.import(formData);
+    }
+
     return {
         notes,
         loading,
@@ -60,5 +67,6 @@ export function useNotes() {
         exportNote,
         getNote,
         saveNote,
+        importNote,
     }
 }
