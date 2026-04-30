@@ -97,6 +97,42 @@
                 ->assertJsonFragment(['action' => ['The selected action is invalid.']]);
         }
 
+        public function test_invalid_options(){
+
+            $response = $this->postJson('api/llm', [
+                'content' => 'Testo da processare',
+                'action' => 'summarize',
+                'options' => ['meme' => ['rizz']]
+            ]);
+
+            $response->assertStatus(422)
+                ->assertJsonFragment(['options.meme' => ['The selected options.meme is invalid.']]);            
+
+        }
+                
+        public function test_invalid_lang(){
+
+            $response = $this->postJson('api/llm', [
+                'content' => 'Testo da processare',
+                'action' => 'translate',
+                'options' => ['lang' => 'al']
+            ]);
+
+            $response->assertStatus(422)
+                ->assertJsonFragment(['options.lang' => ['Translation in al is not supported.']]);            
+        }
+
+        public function test_invalid_rewrite_style(){
+            $response = $this->postJson('api/llm', [
+                'content' => 'Testo da processare',
+                'action' => 'rewrite',
+                'options' => ['style' => ['rizz']]
+            ]);
+
+            $response->assertStatus(422)
+                ->assertJsonFragment(['options.style.0' => ['The selected options.style.0 is invalid.']]);            
+        }
+        
         public function test_llm_error() {
             Http::fake([
                 '*' => Http::response([
@@ -114,4 +150,6 @@
             $response->assertStatus(502)
                 ->assertJsonFragment(['message' => 'Errore LLM 500: Internal Server Error']);
         }
-}
+
+    }
+?>
