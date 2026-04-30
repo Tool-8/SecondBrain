@@ -17,7 +17,7 @@
 
         public function test_import_md(){
             $now = now();
-            $timestamp = $now->format('Y-m-d H:i:s');
+            $timestamp = $now->format('d/m/Y, H:i:s');
 
             $this->travelTo($now); //freeze time
 

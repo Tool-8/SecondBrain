@@ -25,7 +25,7 @@
             
         }
 
-        public function test_invoke_returns_200_with_note(): void {
+        public function test_invoke_returns_200_with_note_with_id(): void {
             $exportedNote = ['content' => '# Conent', 'content_type' => 'text/md', 'filename' => 'Note.md'];
 
             $this->service
@@ -34,7 +34,25 @@
                 ->with('abc', 'md')
                 ->willReturn($exportedNote);
 
-            $response = $this->controller->__invoke(new Request(['format' => 'md']), 'abc');
+            $response = $this->controller->export(new Request(['format' => 'md']), 'abc');
+
+            $this->assertInstanceOf(Response::class, $response);
+            $this->assertSame(200, $response->getStatusCode());
+            $this->assertSame($exportedNote["content"], $response->getContent());
+            $this->assertSame($exportedNote["content_type"], $response->headers->get('Content-Type'));
+            $this->assertSame('attachment; filename="'. $exportedNote['filename'] . '"' , $response->headers->get('Content-Disposition'));
+        }
+
+        public function test_invoke_returns_200_with_note_without_id(): void {
+            $exportedNote = ['content' => '# Content', 'content_type' => 'text/md', 'filename' => 'Note.md'];
+
+            $this->service
+                ->expects($this->once())
+                ->method('exportRaw')
+                ->with('Note', '# Content', 'md')
+                ->willReturn($exportedNote);
+
+            $response = $this->controller->exportRaw(new Request(['format' => 'md', 'title' => 'Note', 'content' => '# Content'] ));
 
             $this->assertInstanceOf(Response::class, $response);
             $this->assertSame(200, $response->getStatusCode());
@@ -48,7 +66,7 @@
                 ->method('export')
                 ->willThrowException(new RuntimeException('NOT_FOUND'));
 
-            $response = $this->controller->__invoke(new Request(['format' => 'md']), 'abc');
+            $response = $this->controller->export(new Request(['format' => 'md']), 'abc');
             
             $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(404, $response->getStatusCode());
@@ -60,7 +78,7 @@
                 ->method('export')
                 ->willThrowException(new RuntimeException('INVALID_ID'));
 
-            $response = $this->controller->__invoke(new Request(['format' => 'md']), 'abc');
+            $response = $this->controller->export(new Request(['format' => 'md']), 'abc');
 
 
             $this->assertInstanceOf(JsonResponse::class, $response);
@@ -68,13 +86,27 @@
             $this->assertSame('Invalid note id', $response->getData(true)['message']);
         }
 
-        public function test_invoke_returns_400_when_unknown_format(): void {
+        public function test_invoke_returns_400_when_unknown_format_with_id(): void {
             $this->service
                 ->method('export')
                 ->with('abc', 'mdma')
                 ->willThrowException(new InvalidArgumentException('Unknown format: mdma'));
 
-            $response = $this->controller->__invoke(new Request(['format' => 'mdma']), 'abc');
+            $response = $this->controller->export(new Request(['format' => 'mdma']), 'abc');
+
+
+            $this->assertInstanceOf(JsonResponse::class, $response);
+            $this->assertSame(400, $response->getStatusCode());
+            $this->assertSame('Unknown format: mdma', $response->getData(true)['message']);
+        }
+
+        public function test_invoke_returns_400_when_unknown_format_without_id(): void {
+            $this->service
+                ->method('exportRaw')
+                ->with('Nota', '# Content', 'mdma')
+                ->willThrowException(new InvalidArgumentException('Unknown format: mdma'));
+
+            $response = $this->controller->exportRaw(new Request(['format' => 'mdma', 'title' => 'Nota', 'content' => '# Content']));
 
 
             $this->assertInstanceOf(JsonResponse::class, $response);
@@ -87,7 +119,7 @@
                 ->method('export')
                 ->willThrowException(new RuntimeException('SOMETHING_UNEXPECTED'));
 
-            $response = $this->controller->__invoke(new Request(['format' => 'some_format']), 'ab');
+            $response = $this->controller->export(new Request(['format' => 'some_format']), 'ab');
 
             $this->assertInstanceOf(JsonResponse::class, $response);
             $this->assertSame(500, $response->getStatusCode());

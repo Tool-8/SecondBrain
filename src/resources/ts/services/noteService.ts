@@ -75,7 +75,7 @@ export const noteService = {
     },
     export: async (id: string, format: 'pdf' | 'md' | 'html'): Promise<void> => {
         return serviceHandler(() =>
-            apiClient.get('/notes/' + id + '/export', {
+            apiClient.get('/notes/export/' + id, {
                 params: {
                     format,
                 },

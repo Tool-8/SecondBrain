@@ -13,7 +13,7 @@
 
         public function __construct(private readonly ExportService $service) {}
 
-        public function __invoke(Request $request, string $id): JsonResponse|Response {
+        public function export(Request $request, string $id): JsonResponse|Response {
 
                 $data = $request->validate(
                     [
@@ -40,6 +40,24 @@
             }
             
         }
+
+        public function exportRaw(Request $request): JsonResponse|Response {
+            $data = $request->validate([
+                'title' => ['required', 'string'],
+                'format'  => ['required', 'string'],
+                'content' => ['required', 'string'],
+            ]);
+
+            try {
+                $export = $this->service->exportRaw($data['title'], $data['content'], $data['format']);
+                return response($export['content'])
+                    ->header('Content-Type', $export['content_type'])
+                    ->header('Content-Disposition', 'attachment; filename="' . $export['filename'] . '"');
+            } catch (InvalidArgumentException $e) {
+                return response()->json(['message' => $e->getMessage()], 400);
+            }
+        }
+
 
         private function mapError(RuntimeException $e): JsonResponse {
             return match ($e->getMessage()) {
