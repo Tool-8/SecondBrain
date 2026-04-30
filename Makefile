@@ -1,9 +1,9 @@
-UID := $(shell id -u)
-GID := $(shell id -g)
+DOCKER_UID := $(shell id -u)
+DOCKER_GID := $(shell id -g)
 
-BASE_COMPOSE = UID=$(UID) GID=$(GID) docker compose -f docker-compose.yml
-DEV_COMPOSE = UID=$(UID) GID=$(GID) docker compose -f docker-compose.yml -f docker-compose.dev.yml
-PROD_COMPOSE = UID=$(UID) GID=$(GID) docker compose -f docker-compose.yml -f docker-compose.prod.yml
+BASE_COMPOSE = DOCKER_UID=$(DOCKER_UID) DOCKER_GID=$(DOCKER_GID) docker compose -f docker-compose.yml
+DEV_COMPOSE = DOCKER_UID=$(DOCKER_UID) DOCKER_GID=$(DOCKER_GID) docker compose -f docker-compose.yml -f docker-compose.dev.yml
+PROD_COMPOSE = DOCKER_UID=$(DOCKER_UID) DOCKER_GID=$(DOCKER_GID) docker compose -f docker-compose.yml -f docker-compose.prod.yml
 
 up:
 	$(DEV_COMPOSE) up -d --build
@@ -29,8 +29,11 @@ logs:
 ps:
 	$(DEV_COMPOSE) ps
 
-test:
+test-back:
 	$(DEV_COMPOSE) exec app php artisan test
+
+test-front:
+	$(DEV_COMPOSE) exec app npm test
 
 lint:
 	$(DEV_COMPOSE) exec app ./vendor/bin/pint --test
