@@ -14,7 +14,7 @@
             Storage::fake('local');
         }
 
-        public function test_export_md() {
+        public function test_export_md_with_id() {
 
             $id = (string) Str::uuid();
 
@@ -23,7 +23,7 @@
                 "---\nid: $id\ntitle: \"Titolo\"\n---\n\nContenuto"
             );
 
-            $response = $this->getJson("/api/notes/{$id}/export?format=md");
+            $response = $this->getJson("/api/notes/export/{$id}?format=md");
 
             $response->assertStatus(200)
                 ->assertHeader('Content-Type', 'text/markdown; charset=utf-8')
@@ -32,7 +32,22 @@
             $this->assertSame('Contenuto', $response->getContent());
         }
 
-        public function test_export_html() {
+        public function test_export_md_without_id() {
+
+            $response = $this->postJson("/api/notes/export", [
+                'title' => 'Titolo',
+                'content' => 'Contenuto',
+                'format' => 'md'
+                ]);
+
+            $response->assertStatus(200)
+                ->assertHeader('Content-Type', 'text/markdown; charset=utf-8')
+                ->assertHeader('Content-Disposition', 'attachment; filename="Titolo.md"');
+
+            $this->assertSame('Contenuto', $response->getContent());
+        }
+
+        public function test_export_html_with_id() {
 
             $id = (string) Str::uuid();
 
@@ -41,17 +56,30 @@
                 "---\nid: $id\ntitle: \"Titolo\"\n---\n\n# Contenuto"
             );
 
-            $response = $this->getJson("/api/notes/{$id}/export?format=html");
+            $response = $this->getJson("/api/notes/export/{$id}?format=html");
 
             $response->assertStatus(200)
                 ->assertHeader('Content-Type', 'text/html; charset=utf-8')
                 ->assertHeader('Content-Disposition', 'attachment; filename="Titolo.html"');
 
             $this->assertStringContainsString('<h1>Contenuto</h1>', $response->getContent());
-            
         }
 
-        public function test_export_pdf() {
+        public function test_export_html_without_id() {
+            $response = $this->postJson("/api/notes/export", [
+                'title' => 'Titolo',
+                'format' => 'html',
+                'content' => '# Contenuto',
+            ]);
+
+            $response->assertStatus(200)
+                ->assertHeader('Content-Type', 'text/html; charset=utf-8')
+                ->assertHeader('Content-Disposition', 'attachment; filename="Titolo.html"');
+
+            $this->assertStringContainsString('<h1>Contenuto</h1>', $response->getContent());
+        }
+
+        public function test_export_pdf_with_id() {
 
             $id = (string) Str::uuid();
 
@@ -60,7 +88,7 @@
                 "---\nid: $id\ntitle: \"Titolo\"\n---\n\nContenuto"
             );
 
-            $response = $this->getJson("/api/notes/{$id}/export?format=pdf");
+            $response = $this->getJson("/api/notes/export/{$id}?format=pdf");
 
             $response->assertStatus(200)
                 ->assertHeader('Content-Type', 'application/pdf')
@@ -68,8 +96,22 @@
 
             $this->assertStringStartsWith('%PDF', $response->getContent()); 
         }
+        
+        public function test_export_pdf_without_id() {
+            $response = $this->postJson("/api/notes/export", [
+                'title' => 'Titolo',
+                'content' => '# Contenuto',
+                'format' => 'pdf'
+            ]);
 
-        public function test_invalid_export_format(){
+            $response->assertStatus(200)
+                ->assertHeader('Content-Type', 'application/pdf')
+                ->assertHeader('Content-Disposition', 'attachment; filename="Titolo.pdf"');
+
+            $this->assertStringStartsWith('%PDF', $response->getContent()); 
+        }
+        
+        public function test_invalid_export_format_with_id(){
             $id = (string) Str::uuid();
 
             Storage::disk('local')->put(
@@ -77,7 +119,18 @@
                 "---\nid: $id\ntitle: \"Titolo\"\n---\n\nContenuto"
             );
 
-            $response = $this->getJson("/api/notes/{$id}/export?format=mdma");
+            $response = $this->getJson("/api/notes/export/{$id}?format=mdma");
+            
+            $response->assertStatus(400)->assertJsonFragment(['message' => 'Unknown format: mdma']);
+        }
+
+        public function test_invalid_export_format_without_id(){
+
+            $response = $this->postJson("/api/notes/export", [
+                'title' => 'Titolo',
+                'content' => '# Contenuto',
+                'format' => 'mdma'
+            ]);
             
             $response->assertStatus(400)->assertJsonFragment(['message' => 'Unknown format: mdma']);
         }
@@ -85,25 +138,25 @@
         public function test_note_not_found_on_export(){
             $id = (string) Str::uuid();
 
-            $response = $this->getJson("/api/notes/{$id}/export?format=html");
+            $response = $this->getJson("/api/notes/export/{$id}?format=html");
             
             $response->assertStatus(404)->assertJsonFragment(['message' => 'Note not found']);
         }
 
         public function test_invalid_id_on_export(){
-            $response = $this->getJson("/api/notes/123/export?format=html");
+            $response = $this->getJson("/api/notes/export/123?format=html");
             
             $response->assertStatus(400)->assertJsonFragment(['message' => 'Invalid note id']);
         }
 
-        public function test_internal_server_error(){
+        public function test_internal_server_error_with_id(){
             $id = (string) Str::uuid();
             
             $this->mock(ExportService::class)
                 ->shouldReceive('export')
                 ->andThrow(new RuntimeException());
 
-            $response = $this->getJson("/api/notes/{$id}/export?format=html");
+            $response = $this->getJson("/api/notes/export/{$id}?format=html");
             
             $response->assertStatus(500)->assertJsonFragment(['message' => 'Server error']);
         }

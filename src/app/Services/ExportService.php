@@ -23,5 +23,15 @@
                 'filename' => $note->getTitle() . '.' . $strategy->extension(),
             ];
         }
+
+        public function exportRaw(string $title, string $content, string $format): array {
+            $strategy = $this->factory->make($format);
+            
+            return [
+                'content' => $strategy->export($content, $title),
+                'content_type' => $strategy->contentType(),
+                'filename' => $title . '.' . $strategy->extension(),
+            ];
+        }
     }
 ?>

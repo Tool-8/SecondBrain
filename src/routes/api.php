@@ -14,7 +14,8 @@
         Route::delete('/{id}', [NoteController::class, 'destroy']);
     });
     
-    Route::get('notes/{id}/export', ExportController::class);
+    Route::get('notes/export/{id}', [ExportController::class, 'export']);
+    Route::post('notes/export', [ExportController::class, 'exportRaw']);
     
     Route::post('notes/import',ImportController::class); 
 

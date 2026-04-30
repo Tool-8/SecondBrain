@@ -33,7 +33,7 @@
             $file = UploadedFile::fake()->create('test.md');
 
             $parsedData = ['title' => 'test', 'content' => '# Prova'];
-            $timestamp = $now->format('Y-m-d H:i:s');
+            $timestamp = $now->format('d/m/Y, H:i:s');
             $title = 'test - ' . $timestamp ;
 
             $strategyMock = $this->createMock(ImportStrategyInterface::class);
