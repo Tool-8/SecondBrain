@@ -2,13 +2,14 @@
 import NoteArchiveCard from '@/components/NoteArchiveCard.vue';
 import ContextMenu from '@/components/ContextMenu.vue';
 import ToastList from '@/components/layout/ToastList.vue';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useNotes } from '@/composables/useNotes';
 import { useToast } from '@/composables/useToast';
 import { useContextMenu } from '@/composables/useContextMenu';
 import type { ContextAction } from '@/types/contextaction';
 import type { Note } from '@/types/note';
 import { useModals } from '@/composables/useModals';
+import GeneralButton from '@/components/GeneralButton.vue';
 
 const { successToast, errorToast, warningToast, infoToast } = useToast();
 const {
@@ -146,6 +147,7 @@ const handleAction = (action: ContextAction<Note>) => {
     noteMenu.close();
 };
 
+const fileInput = ref<HTMLInputElement | null>(null);
 const importEvent = async (event: Event) => {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) {
@@ -171,8 +173,24 @@ const importEvent = async (event: Event) => {
 
 <template>
     <div class="p-6">
-        <h1 class="font-bold text-3xl pb-2">Archivio note</h1>
+        <header class="grid grid-cols-2 pb-2 pt-1">
+            <h1 class="font-bold text-3xl">Archivio note</h1>
 
+            <!-- tasto importa -->
+            <div class="justify-self-end self-start">
+                <input
+                    type="file"
+                    ref="fileInput"
+                    class="hidden"
+                    @change="importEvent"
+                    accept=".md"
+                />
+                <GeneralButton
+                    label="Importa nota"
+                    @click="fileInput?.click()"
+                />
+            </div>
+        </header>
         <div class="pt-5">
             <label for="Search">
                 <div class="relative group">
@@ -208,7 +226,6 @@ const importEvent = async (event: Event) => {
                     />
                 </div>
             </label>
-            <input type="file" @change="importEvent" accept=".md" />
             <p class="text-sm pt-2 text-gray-500 dark:text-neutral-500">
                 {{ noteCount }}
                 {{ noteCount === 1 ? 'nota trovata' : 'note trovate' }} nella
