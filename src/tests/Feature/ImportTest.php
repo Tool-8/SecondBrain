@@ -92,4 +92,15 @@
             $response->assertStatus(500)
                 ->assertJsonFragment(['message' => 'Server error']);
         }
+
+        public function test_returns_422_when_file_exceeds_max_size(){
+            $file = UploadedFile::fake()->create('Test.md', 11000);
+
+            $response = $this->postJson('api/notes/import', [
+                'file' => $file
+            ]);
+
+            $response->assertStatus(422)
+                ->assertJsonFragment(['errors' => ['file' => ['File size must not exceed 10240 KB']]]);
+        }
     }
