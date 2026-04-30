@@ -8,7 +8,7 @@
         "lint": "eslint resources/ts --ext .ts,.vue",
         "format": "prettier --write resources/ts resources/css",
         "format:check": "prettier --check resources/ts resources/css",
-        "test": "vitest"
+        "test": "vitest run"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
