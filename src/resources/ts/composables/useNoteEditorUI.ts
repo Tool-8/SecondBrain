@@ -324,7 +324,7 @@ export function useNoteEditorUI(options: {
         let html = ''
 
         if (mode === 'replace') {
-            html = parentHtml + childHtml + exitHtml
+            html = childHtml + exitHtml
         }
 
         if (mode === 'before') {
