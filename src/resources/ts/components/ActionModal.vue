@@ -2,7 +2,7 @@
 import BaseModal from '@/components/layout/BaseModal.vue';
 import { useModals } from '@/composables/useModals';
 
-const { RenamePromise, DeletePromise, ClonePromise } = useModals();
+const { RenamePromise, DeletePromise, ClonePromise, SavePromise } = useModals();
 </script>
 
 <template>
@@ -101,6 +101,46 @@ const { RenamePromise, DeletePromise, ClonePromise } = useModals();
             </template>
         </BaseModal>
     </ClonePromise>
+
+    <!-- Modale per il salvataggio -->
+    <SavePromise v-slot="{ resolve }">
+        <BaseModal title="Salvataggio nota">
+            <template #body>
+                <div class="mt-4">
+                    <p class="text-pretty text-gray-700 dark:text-gray-200">
+                        La nota che stai cercando di salvare ha già subito una
+                        modifica.
+                    </p>
+                </div>
+            </template>
+            <template #footer>
+                <button
+                    @click="resolve(null)"
+                    class="cursor-pointer min-w-22 rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-neutral-800 dark:text-gray-200 dark:hover:bg-neutral-700"
+                >
+                    Annulla
+                </button>
+                <button
+                    @click="resolve('overwrite')"
+                    class="cursor-pointer min-w-22 rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+                >
+                    Sovrascrivi
+                </button>
+                <button
+                    @click="resolve('save as')"
+                    class="cursor-pointer min-w-22 rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+                >
+                    Salva con nome
+                </button>
+                <button
+                    @click="resolve('update')"
+                    class="cursor-pointer min-w-22 rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+                >
+                    Aggiorna
+                </button>
+            </template>
+        </BaseModal>
+    </SavePromise>
 </template>
 
 <style scoped></style>

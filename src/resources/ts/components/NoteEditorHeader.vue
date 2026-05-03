@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import GeneralButton from '@/components/GeneralButton.vue'
 import type { ViewMode } from '@/composables/useNoteEditorUI'
+import NoteEditorActions from '@/components/NoteEditorActions.vue';
 
 defineProps<{
     name: string
@@ -67,8 +68,6 @@ const emit = defineEmits<{
             </button>
         </div>
 
-        <div class="justify-self-end self-start">
-            <GeneralButton label="Salva" @click="emit('save')" />
-        </div>
+        <NoteEditorActions />
     </header>
 </template>

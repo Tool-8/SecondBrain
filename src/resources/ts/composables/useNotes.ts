@@ -1,6 +1,7 @@
 import { noteService } from "@/services/noteService";
 import type { Note, NoteWithContent } from "@/types/note";
 import { ref } from 'vue';
+import { NoteNotUpdatedError } from "@/errors/noteErrors";
 
 export function useNotes() {
     const notes = ref<Note[]>([])
@@ -23,9 +24,20 @@ export function useNotes() {
         return await noteService.get(id);
     }
 
-    const saveNote = async (id: string, name: string, content: string): Promise<NoteWithContent> => {
-        return await noteService.update(id, name, content);
-    }
+    const saveNote = async (
+        note: Note,
+        content: string,
+        overwrite: boolean = false
+    ) => {
+        console.log(note.last_edit);
+        const backendNote = await getNote(note.id);
+        console.log(backendNote.last_edit);
+        if (backendNote.last_edit !== note.last_edit && !overwrite) {
+            throw new NoteNotUpdatedError(note);
+        }
+
+        return await noteService.update(note.id, note.name, content);
+    };
 
     const renameNote = async (id: string, newName: string) => {
         await noteService.rename(id, newName);
@@ -35,8 +47,8 @@ export function useNotes() {
         await noteService.remove(id);
     }
 
-    const storeNote = async (name: string, content: string) => {
-        await noteService.store(name, content);
+    const storeNote = async (name: string, content: string): Promise<Note> => {
+        return await noteService.store(name, content);
     }
 
     const cloneNote = async (id: string, name: string) => {

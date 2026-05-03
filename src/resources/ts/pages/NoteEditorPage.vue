@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import AsideAI from '@/components/AsideAI.vue'
-import NoteEditorHeader from '@/components/NoteEditorHeader.vue'
-import NoteEditorToolbar from '@/components/NoteEditorToolbar.vue'
-import NoteEditorContent from '@/components/NoteEditorContent.vue'
+import AsideAI from '@/components/AsideAI.vue';
+import NoteEditorHeader from '@/components/NoteEditorHeader.vue';
+import NoteEditorToolbar from '@/components/NoteEditorToolbar.vue';
+import NoteEditorContent from '@/components/NoteEditorContent.vue';
 
-import { useNoteEditor } from '@/composables/useNoteEditor'
-import { useNoteEditorUI } from '@/composables/useNoteEditorUI'
+import { provideNoteEditor } from '@/composables/useNoteEditor';
+import { useNoteEditorUI } from '@/composables/useNoteEditorUI';
 
 const {
     noteName,
@@ -14,7 +14,7 @@ const {
     saveTheNote,
     loadNote,
     setEditorContent,
-} = useNoteEditor()
+} = provideNoteEditor();
 
 const {
     viewMode,
@@ -44,15 +44,18 @@ const {
 } = useNoteEditorUI({
     noteContent,
     setEditorContent,
-})
-
-loadNote()
+});
+loadNote();
 </script>
 
 <template>
     <div
         id="noteEditor"
-        :class="isAiOpen ? 'blur-xs pointer-events-none select-none overflow-hidden' : ''"
+        :class="
+            isAiOpen
+                ? 'blur-xs pointer-events-none select-none overflow-hidden'
+                : ''
+        "
         class="flex flex-col"
     >
         <div class="bg-white dark:bg-neutral-900 sticky top-0">

@@ -12,10 +12,15 @@ const ClonePromise = createTemplatePromise<string | null, [string]>({
     singleton: true,
 });
 
+const SavePromise = createTemplatePromise<"overwrite" | "save as" | "update" | null>({
+    singleton: true,
+});
+
 export function useModals() {
     return {
         RenamePromise,
         DeletePromise,
         ClonePromise,
+        SavePromise,
     };
 }
