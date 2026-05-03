@@ -1,7 +1,7 @@
 # SecondBrain
 
 [![Tests & Coverage](https://github.com/Tool-8/SecondBrain/actions/workflows/tests.yml/badge.svg)](https://github.com/Tool-8/SecondBrain/actions/workflows/tests.yml)
-[![Coverage](https://codecov.io/gh/Tool-8/SecondBrain/branch/main/graph/badge.svg)](https://codecov.io/gh/Tool-8/SecondBrain)
+[![Coverage](https://codecov.io/gh/Tool-8/SecondBrain/branch/dev/graph/badge.svg)](https://codecov.io/gh/Tool-8/SecondBrain)
 
 ## Setup
 
