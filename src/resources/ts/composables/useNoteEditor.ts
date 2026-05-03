@@ -49,10 +49,17 @@ function useNoteEditorState() {
         noteContent.value = html;
     }
 
+    function updateNote() {
+        originalContent.value = noteContent.value;
+        originalName.value = noteName.value;
+        isDirty.value = false;
+    }
+
     const saveNew = async () => {
         await storeNote(noteName.value, noteContent.value)
             .then(async (newNote: Note) => {
                 note.value = newNote;
+                updateNote();
                 await router.replace(`/notes/${newNote.id}`);
                 successToast('Nota salvata', '');
             })
@@ -65,6 +72,7 @@ function useNoteEditorState() {
         await saveNote(note.value as Note, noteContent.value, true)
             .then((updatedNote: Note) => {
                 note.value = updatedNote;
+                updateNote();
                 successToast('Nota sovrascritta', '');
             })
             .catch((error) => {
@@ -76,7 +84,9 @@ function useNoteEditorState() {
         const newName = await RenamePromise.start((note.value as Note).name);
         if (!newName) return;
         await storeNote(newName, noteContent.value)
-            .then(() => {
+            .then(async (newNote: Note) => {
+                updateNote();
+                await router.replace(`/notes/${newNote.id}`);
                 successToast('Nota salvata con successo', '');
             })
             .catch((error) => {
@@ -89,12 +99,7 @@ function useNoteEditorState() {
             .then((updatedNote: NoteWithContent) => {
                 note.value = updatedNote;
                 noteContent.value = updatedNote.content;
-                /*
-                if (note.value) {
-                    (editorRef.value as HTMLElement).innerText =
-                        updatedNote.content;
-                }
-                */
+                updateNote();
                 successToast('Nota aggiornata', '');
             })
             .catch((error) => {
@@ -112,10 +117,6 @@ function useNoteEditorState() {
         }
 
         await saveAs();
-
-        // Aggiorna i valori originali
-        originalContent.value = noteContent.value;
-        originalName.value = noteName.value;
     }
 
     async function saveTheNote() {
@@ -133,6 +134,7 @@ function useNoteEditorState() {
                 await saveNote(note.value as Note, noteContent.value).then(
                     (updatedNote: Note) => {
                         note.value = updatedNote;
+                        updateNote();
                         successToast('Nota salvata', '');
                     }
                 );
@@ -161,38 +163,7 @@ function useNoteEditorState() {
                 }
             }
         }
-
-        // Aggiorna i valori originali
-        originalContent.value = noteContent.value;
-        originalName.value = noteName.value;
     }
-
-    /*
-    async function saveTheNote() {
-        if (!noteName.value.trim()) {
-        warningToast('Attenzione', 'Inserire un nome per la nota')
-        return
-        }
-
-        const id = route.params.id as string | undefined
-
-        try {
-        if (id) {
-            await saveNote(id, noteName.value, noteContent.value)
-        } else {
-            await storeNote(noteName.value, noteContent.value)
-        }
-
-        successToast('Nota salvata', '')
-
-        originalContent.value = noteContent.value
-        originalName.value = noteName.value
-        isDirty.value = false
-        } catch (error) {
-        errorToast('Errore', (error as Error).message)
-        }
-    }
-    */
 
     async function loadNote() {
         const id = route.params.id as string | undefined;

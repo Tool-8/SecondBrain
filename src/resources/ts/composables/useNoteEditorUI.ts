@@ -36,7 +36,9 @@ export function useNoteEditorUI(options: {
     const warnedParents = new Set<string>()
     const warnedChildren = new Set<string>()
 
-    const plainContent = computed(() => htmlToMarkdownText(options.noteContent.value))
+    const plainContent = computed(() => {
+        return htmlToMarkdownText(options.noteContent.value)
+    })
 
     const renderedHtml = computed(() => {
         return marked.parse(plainContent.value)
@@ -373,9 +375,24 @@ export function useNoteEditorUI(options: {
         const div = document.createElement('div')
         div.innerHTML = html
 
-        div.querySelectorAll('[data-ai-parent], [data-ai-child]').forEach(el => {
-        el.replaceWith(document.createTextNode(el.textContent || ''))
-        })
+        div.querySelectorAll('[data-ai-parent], [data-ai-child]').forEach(
+            (el) => {
+                if (el.previousSibling?.nodeType === Node.TEXT_NODE) {
+                    el.previousSibling.textContent =
+                        el.previousSibling.textContent?.replace(
+                            /[ \t]+$/,
+                            ''
+                        ) ?? '';
+                }
+                if (el.nextSibling?.nodeType === Node.TEXT_NODE) {
+                    el.nextSibling.textContent =
+                        el.nextSibling.textContent?.replace(/^[ \t]+/, '') ??
+                        '';
+                }
+
+                el.replaceWith(document.createTextNode(el.textContent || '')); // niente trim
+            }
+        );
 
         div.querySelectorAll('div, p, br').forEach(el => {
         el.after(document.createTextNode('\n'))
