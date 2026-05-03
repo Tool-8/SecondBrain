@@ -1,6 +1,7 @@
 import { computed, ref, type Ref } from 'vue'
 import { marked } from 'marked'
 import { useToast } from '@/composables/useToast'
+import { useAi } from '@/composables/useAi'
 
 export type ViewMode = 'editor' | 'split' | 'render'
 export type AiAction = 'summarize' | 'hats' | 'translate' | null
@@ -19,6 +20,21 @@ export function useNoteEditorUI(options: {
     setEditorContent: (html: string) => void
 }) {
     const { warningToast } = useToast()
+    const {
+        result,
+        error,
+        loading,
+        translate,
+        summarize,
+        rewrite,
+        distantWriting,
+        bluehat,
+        redhat,
+        yellowhat,
+        greenhat,
+        whitehat,
+        blackhat,
+    } = useAi();
 
     const editorRef = ref<HTMLElement | null>(null)
 
@@ -138,14 +154,22 @@ export function useNoteEditorUI(options: {
         aiAction.value = null
     }
 
-    function handleAiRun(payload: {
+    async function handleAiRun(payload: {
         action: Exclude<AiAction, null>
         selectedText: string
         option: string
     }) {
         console.log('AI payload', payload)
 
-        aiResult.value = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
+        switch (payload.action) {
+            case 'summarize':
+                await summarize(selectedText.value);
+                aiResult.value = result.value as string;
+                break;
+            default:
+                console.log('Hello');
+                return null;
+        }
     }
 
     function stripAiMarkers(html: string) {
