@@ -25,6 +25,7 @@ const {
     summarizeMode,
     hatMode,
     languageMode,
+    rewriteStyle,
     renderedHtml,
     wordCount,
     charCount,
@@ -96,11 +97,14 @@ loadNote();
         :result="aiResult"
         :summarize-mode="summarizeMode"
         :hat-mode="hatMode"
+        :rewrite-style="rewriteStyle"
         :language-mode="languageMode"
         @close="closeAiPanel"
         @update:summarizeMode="summarizeMode = $event"
         @update:hatMode="hatMode = $event"
         @update:languageMode="languageMode = $event"
+        @update:rewriteStyle="rewriteStyle = $event"
+        
         @run="handleAiRun"
         @insert="insertAiResult"
     />

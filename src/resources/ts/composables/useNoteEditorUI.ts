@@ -2,12 +2,14 @@ import { computed, ref, type Ref } from 'vue'
 import { marked } from 'marked'
 import { useToast } from '@/composables/useToast'
 import { useAi } from '@/composables/useAi'
+import { AiTone } from '@/services/aiService'
 
 export type ViewMode = 'editor' | 'split' | 'render'
-export type AiAction = 'summarize' | 'hats' | 'translate' | null
+export type AiAction = 'summarize' | 'hats' | 'translate' | 'rewrite' | null
 export type SummarizeMode = 'short' | 'medium' | 'long'
 export type HatMode = 'white' | 'red' | 'black' | 'yellow' | 'green' | 'blue'
 export type LanguageMode = 'it' | 'en' | 'fr' | 'de' | 'es'
+export type RewriteStyle = 'grammar' | 'extension' | 'lexicon' | 'stylistic'
 export type InsertMode = 'before' | 'after' | 'replace'
 
 marked.setOptions({
@@ -48,6 +50,7 @@ export function useNoteEditorUI(options: {
     const summarizeMode = ref<SummarizeMode>('medium')
     const hatMode = ref<HatMode>('white')
     const languageMode = ref<LanguageMode>('en')
+    const rewriteStyle = ref<RewriteStyle[]>(['grammar'])
 
     const warnedParents = new Set<string>()
     const warnedChildren = new Set<string>()
@@ -163,7 +166,13 @@ export function useNoteEditorUI(options: {
 
         switch (payload.action) {
             case 'summarize':
-                await summarize(selectedText.value);
+                await summarize(payload.selectedText);
+                aiResult.value = result.value as string;
+                break;
+            case 'rewrite':
+                const stylesArray = payload.option.split(',')
+                const activeStyles = stylesArray as [AiTone, ...AiTone[]]
+                await rewrite(payload.selectedText, activeStyles);
                 aiResult.value = result.value as string;
                 break;
             default:
@@ -465,6 +474,7 @@ export function useNoteEditorUI(options: {
         summarizeMode,
         hatMode,
         languageMode,
+        rewriteStyle,
         renderedHtml,
         wordCount,
         charCount,
