@@ -234,6 +234,39 @@ export function useNoteEditorUI(options: {
         return true
     }
 
+    function escapeHtml(value: string) {
+        const div = document.createElement('div')
+        div.textContent = value
+        return div.innerHTML
+    }
+
+    function createAiBlockHtml(options: {
+        type: 'parent' | 'child'
+        groupId: string
+        aiIndex: number
+        text: string
+        hidden?: boolean
+        }) {
+        const attr =
+            options.type === 'parent'
+            ? `data-ai-parent="${options.groupId}" data-ai-label="AI #${options.aiIndex} input"`
+            : `data-ai-child="${options.groupId}" data-ai-label="AI #${options.aiIndex} output"`
+
+        return `
+            <div
+            class="ai-marker ai-${options.type}"
+            ${attr}
+            ${options.hidden ? 'hidden' : ''}
+            >${escapeHtml(options.text)}</div>
+        `
+    }
+
+    function createExitBlockHtml() {
+        return `
+            <div class="normal-edit-zone" data-normal-block="true"><br></div>
+        `
+    }
+
     function insertAiResult(mode: InsertMode) {
         if (!editorRef.value || !selectedRange.value || !aiResult.value) return
 
@@ -241,47 +274,58 @@ export function useNoteEditorUI(options: {
 
         const groupId = createAiGroupId()
         const aiIndex = getNextAiIndex()
+
         const range = selectedRange.value.cloneRange()
         const selected = range.toString()
 
-        const parent = createAiBlock({
-        type: 'parent',
-        groupId,
-        aiIndex,
-        text: selected,
+        const parentHtml = createAiBlockHtml({
+            type: 'parent',
+            groupId,
+            aiIndex,
+            text: selected,
+            hidden: mode === 'replace',
         })
 
-        const child = createAiBlock({
-        type: 'child',
-        groupId,
-        aiIndex,
-        text: aiResult.value,
+        const childHtml = createAiBlockHtml({
+            type: 'child',
+            groupId,
+            aiIndex,
+            text: aiResult.value,
         })
 
-        const exit = createExitBlock()
+        const exitHtml = createExitBlockHtml()
 
-        range.deleteContents()
+        let html = ''
 
         if (mode === 'replace') {
-        parent.hidden = true
-        range.insertNode(exit)
-        exit.before(parent, child)
+            html = parentHtml + childHtml + exitHtml
         }
 
         if (mode === 'before') {
-        range.insertNode(exit)
-        exit.before(child, parent)
+            html = childHtml + parentHtml + exitHtml
         }
 
         if (mode === 'after') {
-        range.insertNode(exit)
-        exit.before(parent, child)
+            html = parentHtml + childHtml + exitHtml
         }
 
-        moveCursorToElement(exit)
+        const selection = window.getSelection()
+        selection?.removeAllRanges()
+        selection?.addRange(range)
+
+        document.execCommand('insertHTML', false, html)
+
+        const exit = editorRef.value.querySelector(
+            '[data-normal-block="true"]:last-child'
+        ) as HTMLElement | null
+
+        if (exit) {
+            moveCursorToElement(exit)
+        }
+
         handleEditorInput()
         closeAiPanel()
-    }
+        }
 
     function handleBeforeInput() {
         const selection = window.getSelection()
