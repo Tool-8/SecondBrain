@@ -34,6 +34,48 @@
     transition: none !important;
 }
 
+#editor [data-ai-parent],
+#editor [data-ai-child] {
+    display: block;
+    border-radius: 4px;
+    padding: 4px 6px;
+    margin: 4px 0;
+}
+
+#editor .normal-edit-zone {
+    display: block;
+    min-height: 1.5em;
+    margin: 4px 0;
+}
+
+#editor [data-ai-parent],
+#editor [data-ai-child] {
+    position: relative;
+    border-radius: 4px;
+    padding: 1px 2px;
+    padding-top: 14px;
+}
+
+#editor [data-ai-parent]::before,
+#editor [data-ai-child]::before {
+    content: attr(data-ai-label);
+    font-size: 10px;
+    margin-right: 4px;
+    opacity: .7;
+    font-family: monospace;
+    position: absolute;
+    top: 0;
+    left: 4px;
+}
+
+#editor [data-ai-parent] {
+    background: rgba(251, 191, 36, .25);
+}
+
+#editor [data-ai-child] {
+    background: rgba(59, 130, 246, .18);
+}
+
 @keyframes slide-in {
     from {
         transform: translateY(50%);

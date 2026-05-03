@@ -11,6 +11,7 @@ const props = defineProps<{
     open: boolean
     action: AiAction
     selectedText: string
+    result: string
     summarizeMode: SummarizeMode
     hatMode: HatMode
     languageMode: LanguageMode
@@ -26,6 +27,7 @@ const emit = defineEmits<{
         selectedText: string
         option: string
     }): void
+    (e: 'insert', mode: 'before' | 'after' | 'replace'): void
 }>()
 
 const panelTitle = computed(() => {
@@ -137,15 +139,16 @@ function runAction() {
             <div class="pt-4">
                 <p class="pb-1 text-xs text-gray-500 dark:text-neutral-400">Risultato</p>
                 <div class="max-h-60 overflow-auto rounded bg-gray-100 p-2 dark:bg-neutral-800">
+                    {{ result }}
                 </div>
             </div>
 
             <div class="mt-auto">
                 <p class="pb-1 text-xs text-gray-500 dark:text-neutral-400">Inserisci testo</p>
                 <div class="flex gap-2">
-                <GeneralButton label="prima" />
-                <GeneralButton label="dopo" />
-                <GeneralButton label="sostituisci" />
+                    <GeneralButton label="prima" @click="$emit('insert', 'before')" />
+                    <GeneralButton label="dopo" @click="$emit('insert', 'after')" />
+                    <GeneralButton label="sostituisci" @click="$emit('insert', 'replace')" />
                 </div>
             </div>
         </div>
