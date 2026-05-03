@@ -35,6 +35,7 @@ jobs:
       - name: Run tests with coverage
         env:
           XDEBUG_MODE: coverage
+          XDEBUG_CONFIG: "branch_coverage=1"
         run: php vendor/bin/phpunit --coverage-clover build/logs/clover.xml --log-junit build/logs/junit.xml
 
       - name: Upload coverage to Codecov
