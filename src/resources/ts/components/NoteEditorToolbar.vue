@@ -102,6 +102,13 @@ const emit = defineEmits<{
             >
                 riscrivi
             </button>
+
+            <button
+                class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
+                @click="emit('ai', 'distant writing')"
+            >
+                distant writing
+            </button>
         </div>
 
         <div class="font-jetbrains text-xs self-center ml-auto">

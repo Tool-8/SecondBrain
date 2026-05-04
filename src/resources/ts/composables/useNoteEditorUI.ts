@@ -2,10 +2,10 @@ import { computed, ref, type Ref } from 'vue'
 import { marked } from 'marked'
 import { useToast } from '@/composables/useToast'
 import { useAi } from '@/composables/useAi'
-import { AiTone } from '@/services/aiService'
+import { AiLang, AiTone } from '@/services/aiService'
 
 export type ViewMode = 'editor' | 'split' | 'render'
-export type AiAction = 'summarize' | 'hats' | 'translate' | 'rewrite' | null
+export type AiAction = 'summarize' | 'hats' | 'translate' | 'rewrite' | 'distant writing' | null
 export type SummarizeMode = 'short' | 'medium' | 'long'
 export type HatMode = 'white' | 'red' | 'black' | 'yellow' | 'green' | 'blue'
 export type LanguageMode = 'it' | 'en' | 'fr' | 'de' | 'es'
@@ -171,6 +171,27 @@ export function useNoteEditorUI(options: {
                 const stylesArray = payload.option.split(',')
                 const activeStyles = stylesArray as [AiTone, ...AiTone[]]
                 await rewrite(payload.selectedText, activeStyles);
+                break;
+            case 'hats': {
+                const hatFunctions: Record<string, (text: string) => Promise<void>> = {
+                    white: whitehat,
+                    red: redhat,
+                    black: blackhat,
+                    yellow: yellowhat,
+                    green: greenhat,
+                    blue: bluehat,
+                };
+
+                const selectedHatFn = hatFunctions[payload.option];
+
+                if (selectedHatFn) await selectedHatFn(payload.selectedText);
+                break;
+            }
+            case 'translate':
+                await translate(payload.selectedText, payload.option as AiLang)
+                break;
+            case 'distant writing':
+                await distantWriting(payload.selectedText)
                 break;
             default:
                 console.log('Hello');

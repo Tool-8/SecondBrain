@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import GeneralButton from '@/components/GeneralButton.vue'
 
-type AiAction = 'summarize' | 'hats' | 'translate' | 'rewrite' | null
+type AiAction = 'summarize' | 'hats' | 'translate' | 'rewrite' | 'distant writing' | null
 type SummarizeMode = 'short' | 'medium' | 'long'
 type HatMode = 'white' | 'red' | 'black' | 'yellow' | 'green' | 'blue'
 type LanguageMode = 'it' | 'en' | 'fr' | 'de' | 'es'
@@ -29,7 +29,7 @@ const emit = defineEmits<{
     (e: 'update:languageMode', value: LanguageMode): void
     (e: 'update:rewriteStyle', value: RewriteStyle[]): void
     (e: 'run', payload: {
-        action: 'summarize' | 'hats' | 'translate' | 'rewrite'
+        action: 'summarize' | 'hats' | 'translate' | 'rewrite' | 'distant writing'
         selectedText: string
         option: string
     }): void
@@ -39,6 +39,7 @@ const emit = defineEmits<{
 const panelTitle = computed(() => {
     if (props.action === 'summarize') return 'Riassumi'
     if (props.action === 'rewrite') return 'Riscrivi'
+    if (props.action === 'distant writing') return 'Distant writing'
     if (props.action === 'hats') return 'Sei cappelli'
     if (props.action === 'translate') return 'Traduci'
     return 'AI Brain'
@@ -47,6 +48,7 @@ const panelTitle = computed(() => {
 const actionLabel = computed(() => {
     if (props.action === 'summarize') return 'Riassumi'
     if (props.action === 'rewrite') return 'Riscrivi'
+    if (props.action === 'distant writing') return 'Genera'
     if (props.action === 'hats') return 'Applica cappello'
     if (props.action === 'translate') return 'Traduci'
     return 'Azione'
