@@ -511,29 +511,29 @@ export function useNoteEditorUI(options: {
     }
 
     function handleEditorKeydown(event: KeyboardEvent) {
-    if (event.key !== 'Enter') return
-    const selection = window.getSelection()
-    if (!selection || selection.rangeCount === 0) return
-    const node = selection.anchorNode
-    const el = node instanceof HTMLElement ? node : node?.parentElement
-    if (!el) return
+        if (event.key !== 'Enter') return
+        const selection = window.getSelection()
+        if (!selection || selection.rangeCount === 0) return
+        const node = selection.anchorNode
+        const el = node instanceof HTMLElement ? node : node?.parentElement
+        if (!el) return
 
-    const aiBlock = el.closest('[data-ai-parent], [data-ai-child]') as HTMLElement | null
-    if (aiBlock) {
-        event.preventDefault()
-        moveOutsideAiBlock()
-        return
+        const aiBlock = el.closest('[data-ai-parent], [data-ai-child]') as HTMLElement | null
+        if (aiBlock) {
+            event.preventDefault()
+            moveOutsideAiBlock()
+            return
+        }
+
+        const textNode = selection.anchorNode
+        if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return
+
+        const isList = handleListEnter(textNode, selection.anchorOffset, selection.getRangeAt(0))
+        if (isList) {
+            event.preventDefault()
+            handleEditorInput()
+        }
     }
-
-    const textNode = selection.anchorNode
-    if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return
-
-    const isList = handleListEnter(textNode, selection.anchorOffset, selection.getRangeAt(0))
-    if (isList) {
-        event.preventDefault()
-        handleEditorInput()
-    }
-}
 
     return {
         viewMode,
