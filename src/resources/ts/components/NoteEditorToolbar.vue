@@ -9,7 +9,7 @@ defineProps<{
 const emit = defineEmits<{
     undo: []
     redo: []
-    format: [type: 'bold' | 'italic' | 'underline']
+    format: [type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'comment']
     ai: [action: Exclude<AiAction, null>]
 }>()
 </script>
@@ -71,6 +71,22 @@ const emit = defineEmits<{
                 @click="emit('format', 'underline')"
             >
                 U
+            </button>
+
+            <button
+                class="px-2 font-bold line-through cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
+                title="barrato"
+                @click="emit('format', 'strikethrough')"
+            >
+                S
+            </button>
+
+            <button
+                class="px-2 font-bold cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
+                title="commento"
+                @click="emit('format', 'comment')"
+            >
+                C
             </button>
         </div>
 

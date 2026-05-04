@@ -78,7 +78,7 @@ export function useNoteEditorUI(options: {
         handleEditorInput()
     }
 
-    function applyFormat(type: 'bold' | 'italic' | 'underline') {
+    function applyFormat(type: 'bold' | 'italic' | 'underline'| 'strikethrough' | 'comment') {
         if (!editorRef.value) return
 
         editorRef.value.focus()
@@ -97,6 +97,8 @@ export function useNoteEditorUI(options: {
         bold: ['**', '**'],
         italic: ['*', '*'],
         underline: ['<u>', '</u>'],
+        strikethrough: ['~~', '~~'],
+        comment: ['<!--[Inizio commento]\n', '\n[Fine commento]-->']
         } as const
 
         const [start, end] = wrappers[type]
