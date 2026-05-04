@@ -162,23 +162,27 @@ export function useNoteEditorUI(options: {
         selectedText: string
         option: string
     }) {
-        console.log('AI payload', payload)
 
         switch (payload.action) {
             case 'summarize':
                 await summarize(payload.selectedText);
-                aiResult.value = result.value as string;
                 break;
             case 'rewrite':
                 const stylesArray = payload.option.split(',')
                 const activeStyles = stylesArray as [AiTone, ...AiTone[]]
                 await rewrite(payload.selectedText, activeStyles);
-                aiResult.value = result.value as string;
                 break;
             default:
                 console.log('Hello');
                 return null;
         }
+
+        if (error.value) {
+            warningToast('Errore AI', error.value)
+            return
+        }
+        
+        aiResult.value = result.value as string;
     }
 
     function stripAiMarkers(html: string) {
@@ -471,6 +475,7 @@ export function useNoteEditorUI(options: {
         aiAction,
         selectedText,
         aiResult,
+        loading,
         summarizeMode,
         hatMode,
         languageMode,

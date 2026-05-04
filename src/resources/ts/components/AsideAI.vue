@@ -8,11 +8,14 @@ type HatMode = 'white' | 'red' | 'black' | 'yellow' | 'green' | 'blue'
 type LanguageMode = 'it' | 'en' | 'fr' | 'de' | 'es'
 type RewriteStyle = 'grammar' | 'extension' | 'lexicon' | 'stylistic'
 
+
+
 const props = defineProps<{
     open: boolean
     action: AiAction
     selectedText: string
     result: string
+    loading: boolean
     summarizeMode: SummarizeMode
     hatMode: HatMode
     languageMode: LanguageMode
@@ -173,7 +176,7 @@ function runAction() {
                 </div>
             </div>
 
-            <GeneralButton :label="actionLabel" @click="runAction" />
+            <GeneralButton :label="actionLabel" @click="runAction" :disabled="loading"/>
 
             <div class="pt-2">
                 <p class="pb-1 text-xs text-gray-500 dark:text-neutral-400">Risultato</p>
@@ -185,9 +188,9 @@ function runAction() {
             <div class="mt-auto">
                 <p class="pb-1 text-xs text-gray-500 dark:text-neutral-400">Inserisci testo</p>
                 <div class="flex gap-2">
-                    <GeneralButton label="prima" @click="$emit('insert', 'before')" />
-                    <GeneralButton label="dopo" @click="$emit('insert', 'after')" />
-                    <GeneralButton label="sostituisci" @click="$emit('insert', 'replace')" />
+                    <GeneralButton label="prima" :disabled="loading" @click="$emit('insert', 'before')" />
+                    <GeneralButton label="dopo" :disabled="loading" @click="$emit('insert', 'after')" />
+                    <GeneralButton label="sostituisci" :disabled="loading" @click="$emit('insert', 'replace')" />
                 </div>
             </div>
         </div>

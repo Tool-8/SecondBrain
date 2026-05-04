@@ -5,7 +5,7 @@ const { toasts, removeToast } = useToast();
 </script>
 
 <template>
-    <div class="fixed top-3 right-3 z-50 w-90">
+    <div class="fixed top-3 right-3 z-100 w-90">
         <TransitionGroup 
             name="toastlist" 
             tag="ul"

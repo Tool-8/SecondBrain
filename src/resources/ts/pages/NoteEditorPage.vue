@@ -22,6 +22,7 @@ const {
     aiAction,
     selectedText,
     aiResult,
+    loading,
     summarizeMode,
     hatMode,
     languageMode,
@@ -95,6 +96,7 @@ loadNote();
         :action="aiAction"
         :selected-text="selectedText"
         :result="aiResult"
+        :loading="loading"
         :summarize-mode="summarizeMode"
         :hat-mode="hatMode"
         :rewrite-style="rewriteStyle"
