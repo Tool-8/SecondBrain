@@ -97,7 +97,18 @@ export function useNoteEditorUI(options: {
         handleEditorInput()
     }
 
-    function applyFormat(type: 'bold' | 'italic' | 'underline'| 'strikethrough' | 'comment' | 'link') {
+    function formatList(text: string, type: 'ordered_list' | 'unordered_list'): string {
+        const prefix = type === 'unordered_list' ? /^(\s*)[-*]\s/ : /^(\s*)\d+\.\s/
+        const lines = text.split('\n')
+        const allHavePrefix = lines.every(line => prefix.test(line))
+        return lines.map((line, i) =>
+            allHavePrefix
+                ? line.replace(prefix, '$1')
+                : prefix.test(line) ? line : `${line.match(/^(\s*)/)?.[1] ?? ''}${type === 'unordered_list' ? '- ' : `${i + 1}. `}${line.trimStart()}`
+        ).join('\n')
+    }
+
+    function applyFormat(type: 'bold' | 'italic' | 'underline'| 'strikethrough' | 'comment' | 'link' | 'ordered_list' | 'unordered_list') {
         if (!editorRef.value) return
 
         editorRef.value.focus()
@@ -118,7 +129,9 @@ export function useNoteEditorUI(options: {
         underline: ['<u>', '</u>'],
         strikethrough: ['~~', '~~'],
         comment: ['<!--[Inizio commento]\n', '\n[Fine commento]-->'],
-        link: ['[', '](www.example.com)']
+        link: ['[', '](www.example.com)'],
+        ordered_list: ['', ''],
+        unordered_list: ['', '']
         } as const
 
         const [start, end] = wrappers[type]
@@ -131,6 +144,8 @@ export function useNoteEditorUI(options: {
                 : `${start}${text}${end}`
 
             document.execCommand('insertText', false, formattedText)
+        } else if (type === 'ordered_list' || type === 'unordered_list') {
+            document.execCommand('insertText', false, formatList(text, type))
         } else {
             const alreadyWrapped = text.startsWith(start) && text.endsWith(end)
 
@@ -239,28 +254,6 @@ export function useNoteEditorUI(options: {
         return editorRef.value.querySelectorAll('[data-ai-child]').length + 1
     }
 
-    function createAiBlock(options: {
-        type: 'parent' | 'child'
-        groupId: string
-        aiIndex: number
-        text: string
-    }) {
-        const block = document.createElement('div')
-
-        block.className = `ai-marker ai-${options.type}`
-
-        if (options.type === 'parent') {
-        block.dataset.aiParent = options.groupId
-        block.dataset.aiLabel = `AI #${options.aiIndex} input`
-        } else {
-        block.dataset.aiChild = options.groupId
-        block.dataset.aiLabel = `AI #${options.aiIndex} output`
-        }
-
-        block.textContent = options.text
-
-        return block
-    }
 
     function createExitBlock() {
         const exit = document.createElement('div')
@@ -472,6 +465,42 @@ export function useNoteEditorUI(options: {
         return div.textContent || ''
     }
 
+    function handleListEnter(
+        textNode: Node,
+        cursorOffset: number,
+        range: Range
+    ): boolean {
+        const fullText = textNode.textContent ?? ''
+        const textBeforeCursor = fullText.slice(0, cursorOffset)
+        const lineStart = textBeforeCursor.lastIndexOf('\n') + 1
+        const currentLine = textBeforeCursor.slice(lineStart)
+
+        const unorderedMatch = currentLine.match(/^(\s*[-*]\s)/)
+        const orderedMatch = currentLine.match(/^(\s*(\d+)\.\s)/)
+        if (!unorderedMatch && !orderedMatch) return false
+
+        const lineContent = currentLine.slice((unorderedMatch ?? orderedMatch)![1].length)
+
+        if (lineContent.trim() === '') {
+            const prefixLength = (unorderedMatch ?? orderedMatch)![1].length
+            const deleteRange = range.cloneRange()
+            deleteRange.setStart(textNode, cursorOffset - prefixLength)
+            deleteRange.setEnd(textNode, cursorOffset)
+            deleteRange.deleteContents()
+            document.execCommand('insertText', false, '\n')
+        } else if (orderedMatch) {
+            const nextNumber = parseInt(orderedMatch[2], 10) + 1
+            const indent = currentLine.match(/^(\s*)/)?.[1] ?? ''
+            document.execCommand('insertText', false, `\n${indent}${nextNumber}. `)
+        } else {
+            const indent = currentLine.match(/^(\s*)/)?.[1] ?? ''
+            const bullet = unorderedMatch![1].trim() + ' '
+            document.execCommand('insertText', false, `\n${indent}${bullet}`)
+        }
+
+        return true
+    }
+
     function handlePaste(event: ClipboardEvent) {
         event.preventDefault()
 
@@ -483,24 +512,27 @@ export function useNoteEditorUI(options: {
 
     function handleEditorKeydown(event: KeyboardEvent) {
         if (event.key !== 'Enter') return
-
         const selection = window.getSelection()
         if (!selection || selection.rangeCount === 0) return
-
         const node = selection.anchorNode
-
-        const el = node instanceof HTMLElement
-        ? node
-        : node?.parentElement
-
+        const el = node instanceof HTMLElement ? node : node?.parentElement
         if (!el) return
 
         const aiBlock = el.closest('[data-ai-parent], [data-ai-child]') as HTMLElement | null
+        if (aiBlock) {
+            event.preventDefault()
+            moveOutsideAiBlock()
+            return
+        }
 
-        if (!aiBlock) return
+        const textNode = selection.anchorNode
+        if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return
 
-        event.preventDefault()
-        moveOutsideAiBlock()
+        const isList = handleListEnter(textNode, selection.anchorOffset, selection.getRangeAt(0))
+        if (isList) {
+            event.preventDefault()
+            handleEditorInput()
+        }
     }
 
     return {

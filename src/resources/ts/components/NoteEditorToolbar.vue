@@ -9,7 +9,7 @@ defineProps<{
 const emit = defineEmits<{
     undo: []
     redo: []
-    format: [type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'comment' | 'link']
+    format: [type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'comment' | 'link' | 'ordered_list' | 'unordered_list']
     ai: [action: Exclude<AiAction, null>]
 }>()
 </script>
@@ -86,7 +86,9 @@ const emit = defineEmits<{
                 title="commento"
                 @click="emit('format', 'comment')"
             >
-                C
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
             </button>
 
             <button
@@ -94,23 +96,40 @@ const emit = defineEmits<{
                 title="link"
                 @click="emit('format', 'link')"
             >
-                L
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
             </button>
 
             <button
                 class="px-2 font-bold cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 title="elenco numerato"
-                
+                @click="emit('format', 'ordered_list')"
             >
-                1.
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="10" y1="6" x2="21" y2="6"/>
+                    <line x1="10" y1="12" x2="21" y2="12"/>
+                    <line x1="10" y1="18" x2="21" y2="18"/>
+                    <path d="M4 6h1v4"/>
+                    <path d="M4 10h2"/>
+                    <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>
+                </svg>
             </button>
 
             <button
                 class="px-2 font-bold cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 title="elenco puntato"
-                
+                @click="emit('format', 'unordered_list')"
             >
-                •
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="9" y1="6" x2="20" y2="6"/>
+                    <line x1="9" y1="12" x2="20" y2="12"/>
+                    <line x1="9" y1="18" x2="20" y2="18"/>
+                    <circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/>
+                    <circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/>
+                    <circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/>
+                </svg>
             </button>
         </div>
 
@@ -119,35 +138,35 @@ const emit = defineEmits<{
                 class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 @click="emit('ai', 'summarize')"
             >
-                riassumi
+                Riassumi
             </button>
 
             <button
                 class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 @click="emit('ai', 'hats')"
             >
-                cappelli
+                Critica
             </button>
 
             <button
                 class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 @click="emit('ai', 'translate')"
             >
-                traduci
+                Traduci
             </button>
 
             <button
                 class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 @click="emit('ai', 'rewrite')"
             >
-                riscrivi
+                Riscrivi
             </button>
 
             <button
                 class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 @click="emit('ai', 'distant writing')"
             >
-                distant writing
+                Distant Writing
             </button>
         </div>
 
