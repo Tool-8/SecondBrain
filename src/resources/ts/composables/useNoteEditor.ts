@@ -1,12 +1,11 @@
 import { computed, inject, provide, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useToast } from '@/composables/useToast';
-import { useNotes } from '@/composables/useNotes';
+import useNotes from '@/composables/useNotes';
 import { useModals } from '@/composables/useModals';
 import { Note, NoteWithContent } from '@/types/note';
 import router from '@/router';
 import { NoteNotUpdatedError } from '@/errors/noteErrors';
-import { useNoteEditorUI } from '@/composables/useNoteEditorUI';
 
 function normalizeEditorHtml(html: string) {
     const div = document.createElement('div');
@@ -27,10 +26,7 @@ function useNoteEditorState() {
     const noteContent = ref('');
     const noteName = ref('');
 
-    const originalContent = ref('');
-    const originalName = ref('');
-
-    const note = ref<Note | null>(null);
+    const originalNote = ref<NoteWithContent | null>(null);
 
     const isDirty = ref(false);
 
@@ -39,10 +35,13 @@ function useNoteEditorState() {
     const { RenamePromise, SavePromise } = useModals();
 
     watch([noteContent, noteName], ([newContent, newName]) => {
-        isDirty.value =
+        if (!originalNote.value) isDirty.value = true;
+        else {
+            isDirty.value =
             normalizeEditorHtml(newContent) !==
-                normalizeEditorHtml(originalContent.value) ||
-            newName !== originalName.value;
+            normalizeEditorHtml(originalNote.value?.content) ||
+            newName !== originalNote.value?.name
+        }
     });
 
     function setEditorContent(html: string) {
@@ -50,61 +49,46 @@ function useNoteEditorState() {
     }
 
     function updateNote() {
-        originalContent.value = noteContent.value;
-        originalName.value = noteName.value;
+        // @ts-ignore
+        originalNote.value.content = noteContent.value;
+        // @ts-ignore
+        originalNote.value.name = noteName.value;
         isDirty.value = false;
     }
 
     const saveNew = async () => {
-        await storeNote(noteName.value, noteContent.value)
-            .then(async (newNote: Note) => {
-                note.value = newNote;
-                updateNote();
-                await router.replace(`/notes/${newNote.id}`);
-                successToast('Nota salvata', '');
-            })
-            .catch((error) => {
-                errorToast('Errore', (error as Error).message);
-            });
+        const newNote = await storeNote(noteName.value, noteContent.value);
+        if (!newNote) return;
+        (originalNote.value as Note) = newNote;
+        updateNote();
+        await router.replace(`/notes/${newNote.id}`);
     };
 
     const overwrite = async () => {
-        await saveNote(note.value as Note, noteContent.value, true)
-            .then((updatedNote: Note) => {
-                note.value = updatedNote;
-                updateNote();
-                successToast('Nota sovrascritta', '');
-            })
-            .catch((error) => {
-                errorToast('Errore', (error as Error).message);
-            });
+        if (!originalNote.value) return;
+        const updatedNote = await saveNote(originalNote.value, noteContent.value, noteName.value, true);
+        if (!updatedNote) return;
+        (originalNote.value as Note) = updatedNote;
+        updateNote();
     };
 
     const saveAs = async () => {
-        const newName = await RenamePromise.start((note.value as Note).name);
+        const newName = await RenamePromise.start(noteName.value);
         if (!newName) return;
-        await storeNote(newName, noteContent.value)
-            .then(async (newNote: Note) => {
-                updateNote();
-                await router.replace(`/notes/${newNote.id}`);
-                successToast('Nota salvata con successo', '');
-            })
-            .catch((error) => {
-                errorToast('Errore', (error as Error).message);
-            });
+        const newNote = await storeNote(newName, noteContent.value);
+        if (!newNote) return;
+        (originalNote.value as Note) = newNote;
+        updateNote();
+        await router.replace(`/notes/${newNote.id}`);
     };
 
     const update = async (id: string) => {
-        await getNote(id)
-            .then((updatedNote: NoteWithContent) => {
-                note.value = updatedNote;
-                noteContent.value = updatedNote.content;
-                updateNote();
-                successToast('Nota aggiornata', '');
-            })
-            .catch((error) => {
-                errorToast('Errore', (error as Error).message);
-            });
+        const updatedNote = await getNote(id);
+        if (!updatedNote) return;
+        (originalNote.value as Note) = updatedNote;
+        noteContent.value = updatedNote.content;
+        noteName.value = updatedNote.name;
+        updateNote();
     };
 
     async function saveTheNoteAs() {
@@ -123,43 +107,37 @@ function useNoteEditorState() {
         const id = route.params.id as string | undefined;
 
         // Primo salvataggio nota
-        if (!id) {
+        if (!originalNote.value || !id) {
             await saveNew();
+            return;
         }
 
         // Salvataggio nota esistente
-        else {
-            try {
-                (note.value as Note).name = noteName.value;
-                await saveNote(note.value as Note, noteContent.value).then(
-                    (updatedNote: Note) => {
-                        note.value = updatedNote;
-                        updateNote();
-                        successToast('Nota salvata', '');
-                    }
-                );
-            } catch (error) {
-                if (error instanceof NoteNotUpdatedError) {
-                    // Caso d'uso nota non aggiornata al salvataggio
-                    const response = await SavePromise.start();
-                    if (!response) return;
+        try {
+            console.log(noteName.value);
+            const updatedNote = await saveNote(originalNote.value, noteContent.value, noteName.value);
+            if (!updatedNote) return;
+            (originalNote.value as Note) = updatedNote;
+            updateNote();
+        } catch (error) {
+            if (error instanceof NoteNotUpdatedError) {
+                // Caso d'uso nota non aggiornata al salvataggio
+                const response = await SavePromise.start();
+                if (!response) return;
 
-                    switch (response) {
-                        case 'overwrite': {
-                            await overwrite();
-                            break;
-                        }
-                        case 'save as': {
-                            await saveAs();
-                            break;
-                        }
-                        case 'update': {
-                            await update(id);
-                            break;
-                        }
+                switch (response) {
+                    case 'overwrite': {
+                        await overwrite();
+                        break;
                     }
-                } else {
-                    errorToast('Errore', (error as Error).message);
+                    case 'save as': {
+                        await saveAs();
+                        break;
+                    }
+                    case 'update': {
+                        await update(id);
+                        break;
+                    }
                 }
             }
         }
@@ -170,25 +148,18 @@ function useNoteEditorState() {
 
         if (!id) return;
 
-        try {
-            const noteArch = await getNote(id);
+        const noteArch = await getNote(id);
+        if (!noteArch) return;
 
-            note.value = noteArch as Note;
+        originalNote.value = noteArch;
 
-            noteName.value = noteArch.name;
-            noteContent.value = noteArch.content;
+        noteName.value = noteArch.name;
+        noteContent.value = noteArch.content;
 
-            originalContent.value = noteArch.content;
-            originalName.value = noteArch.name;
-
-            isDirty.value = false;
-        } catch (error) {
-            errorToast('Errore', (error as Error).message);
-        }
+        isDirty.value = false;
     }
 
     return {
-        note,
         noteContent,
         noteName,
         isDirty,
