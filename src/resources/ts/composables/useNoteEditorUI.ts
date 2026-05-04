@@ -78,7 +78,7 @@ export function useNoteEditorUI(options: {
         handleEditorInput()
     }
 
-    function applyFormat(type: 'bold' | 'italic' | 'underline') {
+    function applyFormat(type: 'bold' | 'italic' | 'underline'| 'strikethrough' | 'comment' | 'link') {
         if (!editorRef.value) return
 
         editorRef.value.focus()
@@ -97,17 +97,30 @@ export function useNoteEditorUI(options: {
         bold: ['**', '**'],
         italic: ['*', '*'],
         underline: ['<u>', '</u>'],
+        strikethrough: ['~~', '~~'],
+        comment: ['<!--[Inizio commento]\n', '\n[Fine commento]-->'],
+        link: ['[', '](www.example.com)']
         } as const
 
         const [start, end] = wrappers[type]
 
-        const alreadyWrapped = text.startsWith(start) && text.endsWith(end)
+        if (type === 'link') {
+            const match = text.match(/^\[(.*?)\]\((.*?)\)$/)
 
-        const formattedText = alreadyWrapped
-        ? text.slice(start.length, text.length - end.length)
-        : `${start}${text}${end}`
+            const formattedText = match
+                ? match[1]
+                : `${start}${text}${end}`
 
-        document.execCommand('insertText', false, formattedText)
+            document.execCommand('insertText', false, formattedText)
+        } else {
+            const alreadyWrapped = text.startsWith(start) && text.endsWith(end)
+
+            const formattedText = alreadyWrapped
+                ? text.slice(start.length, text.length - end.length)
+                : `${start}${text}${end}`
+
+            document.execCommand('insertText', false, formattedText)
+        }
 
         handleEditorInput()
     }
