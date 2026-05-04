@@ -97,7 +97,18 @@ export function useNoteEditorUI(options: {
         handleEditorInput()
     }
 
-    function applyFormat(type: 'bold' | 'italic' | 'underline'| 'strikethrough' | 'comment' | 'link' | 'ordered list' | 'unordered list') {
+    function formatList(text: string, type: 'ordered_list' | 'unordered_list'): string {
+        const prefix = type === 'unordered_list' ? /^(\s*)[-*]\s/ : /^(\s*)\d+\.\s/
+        const lines = text.split('\n')
+        const allHavePrefix = lines.every(line => prefix.test(line))
+        return lines.map((line, i) =>
+            allHavePrefix
+                ? line.replace(prefix, '$1')
+                : prefix.test(line) ? line : `${line.match(/^(\s*)/)?.[1] ?? ''}${type === 'unordered_list' ? '- ' : `${i + 1}. `}${line.trimStart()}`
+        ).join('\n')
+    }
+
+    function applyFormat(type: 'bold' | 'italic' | 'underline'| 'strikethrough' | 'comment' | 'link' | 'ordered_list' | 'unordered_list') {
         if (!editorRef.value) return
 
         editorRef.value.focus()
@@ -119,8 +130,8 @@ export function useNoteEditorUI(options: {
         strikethrough: ['~~', '~~'],
         comment: ['<!--[Inizio commento]\n', '\n[Fine commento]-->'],
         link: ['[', '](www.example.com)'],
-        'ordered list': ['', ''],
-        'unordered list': ['', '']
+        ordered_list: ['', ''],
+        unordered_list: ['', '']
         } as const
 
         const [start, end] = wrappers[type]
@@ -133,16 +144,8 @@ export function useNoteEditorUI(options: {
                 : `${start}${text}${end}`
 
             document.execCommand('insertText', false, formattedText)
-        } else if (type === 'ordered list' || type === 'unordered list') {
-            const prefix = type === 'unordered list' ? /^(\s*)[-*]\s/ : /^(\s*)\d+\.\s/
-            const lines = text.split('\n')
-            const allHavePrefix = lines.every(line => prefix.test(line))
-            const formattedText = lines.map((line, i) =>
-                allHavePrefix
-                    ? line.replace(prefix, '$1')
-                    : prefix.test(line) ? line : `${line.match(/^(\s*)/)?.[1] ?? ''}${type === 'unordered list' ? '- ' : `${i + 1}. `}${line.trimStart()}`
-            ).join('\n')
-            document.execCommand('insertText', false, formattedText)
+        } else if (type === 'ordered_list' || type === 'unordered_list') {
+            document.execCommand('insertText', false, formatList(text, type))
         } else {
             const alreadyWrapped = text.startsWith(start) && text.endsWith(end)
 
@@ -462,6 +465,42 @@ export function useNoteEditorUI(options: {
         return div.textContent || ''
     }
 
+    function handleListEnter(
+        textNode: Node,
+        cursorOffset: number,
+        range: Range
+    ): boolean {
+        const fullText = textNode.textContent ?? ''
+        const textBeforeCursor = fullText.slice(0, cursorOffset)
+        const lineStart = textBeforeCursor.lastIndexOf('\n') + 1
+        const currentLine = textBeforeCursor.slice(lineStart)
+
+        const unorderedMatch = currentLine.match(/^(\s*[-*]\s)/)
+        const orderedMatch = currentLine.match(/^(\s*(\d+)\.\s)/)
+        if (!unorderedMatch && !orderedMatch) return false
+
+        const lineContent = currentLine.slice((unorderedMatch ?? orderedMatch)![1].length)
+
+        if (lineContent.trim() === '') {
+            const prefixLength = (unorderedMatch ?? orderedMatch)![1].length
+            const deleteRange = range.cloneRange()
+            deleteRange.setStart(textNode, cursorOffset - prefixLength)
+            deleteRange.setEnd(textNode, cursorOffset)
+            deleteRange.deleteContents()
+            document.execCommand('insertText', false, '\n')
+        } else if (orderedMatch) {
+            const nextNumber = parseInt(orderedMatch[2], 10) + 1
+            const indent = currentLine.match(/^(\s*)/)?.[1] ?? ''
+            document.execCommand('insertText', false, `\n${indent}${nextNumber}. `)
+        } else {
+            const indent = currentLine.match(/^(\s*)/)?.[1] ?? ''
+            const bullet = unorderedMatch![1].trim() + ' '
+            document.execCommand('insertText', false, `\n${indent}${bullet}`)
+        }
+
+        return true
+    }
+
     function handlePaste(event: ClipboardEvent) {
         event.preventDefault()
 
@@ -479,7 +518,6 @@ export function useNoteEditorUI(options: {
     const el = node instanceof HTMLElement ? node : node?.parentElement
     if (!el) return
 
-
     const aiBlock = el.closest('[data-ai-parent], [data-ai-child]') as HTMLElement | null
     if (aiBlock) {
         event.preventDefault()
@@ -487,52 +525,14 @@ export function useNoteEditorUI(options: {
         return
     }
 
-    // Liste MD
-    const range = selection.getRangeAt(0)
-
-    // Riga corrente
     const textNode = selection.anchorNode
     if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return
 
-    const fullText = textNode.textContent ?? ''
-    const cursorOffset = selection.anchorOffset
-
-    // Inizio riga corrente
-    const textBeforeCursor = fullText.slice(0, cursorOffset)
-    const lineStart = textBeforeCursor.lastIndexOf('\n') + 1
-    const currentLine = textBeforeCursor.slice(lineStart)
-
-    // Cerca prefisso lista non ordinata
-    const unorderedMatch = currentLine.match(/^(\s*[-*]\s)/)
-    // Cerca prefisso lista ordinata
-    const orderedMatch = currentLine.match(/^(\s*(\d+)\.\s)/)
-
-    if (!unorderedMatch && !orderedMatch) return
-
-    event.preventDefault()
-
-    const lineContent = currentLine.slice(
-        (unorderedMatch ?? orderedMatch)![1].length
-    )
-    // Uscita dalla lista se riga vuota
-    if (lineContent.trim() === '') {
-        const prefixLength = (unorderedMatch ?? orderedMatch)![1].length
-        const deleteRange = range.cloneRange()
-        deleteRange.setStart(textNode, cursorOffset - prefixLength)
-        deleteRange.setEnd(textNode, cursorOffset)
-        deleteRange.deleteContents()
-        document.execCommand('insertText', false, '\n')
-    } else if (orderedMatch) {
-        const nextNumber = parseInt(orderedMatch[2], 10) + 1
-        const indent = currentLine.match(/^(\s*)/)?.[1] ?? ''
-        document.execCommand('insertText', false, `\n${indent}${nextNumber}. `)
-    } else {
-        const indent = currentLine.match(/^(\s*)/)?.[1] ?? ''
-        const bullet = unorderedMatch![1].trim() + ' '
-        document.execCommand('insertText', false, `\n${indent}${bullet}`)
+    const isList = handleListEnter(textNode, selection.anchorOffset, selection.getRangeAt(0))
+    if (isList) {
+        event.preventDefault()
+        handleEditorInput()
     }
-
-    handleEditorInput()
 }
 
     return {

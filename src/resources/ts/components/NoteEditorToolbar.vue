@@ -9,7 +9,7 @@ defineProps<{
 const emit = defineEmits<{
     undo: []
     redo: []
-    format: [type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'comment' | 'link' | 'ordered list' | 'unordered list']
+    format: [type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'comment' | 'link' | 'ordered_list' | 'unordered_list']
     ai: [action: Exclude<AiAction, null>]
 }>()
 </script>
@@ -105,7 +105,7 @@ const emit = defineEmits<{
             <button
                 class="px-2 font-bold cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 title="elenco numerato"
-                @click="emit('format', 'ordered list')"
+                @click="emit('format', 'ordered_list')"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="10" y1="6" x2="21" y2="6"/>
@@ -120,7 +120,7 @@ const emit = defineEmits<{
             <button
                 class="px-2 font-bold cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 title="elenco puntato"
-                @click="emit('format', 'unordered list')"
+                @click="emit('format', 'unordered_list')"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="9" y1="6" x2="20" y2="6"/>
@@ -138,35 +138,35 @@ const emit = defineEmits<{
                 class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 @click="emit('ai', 'summarize')"
             >
-                riassumi
+                Riassumi
             </button>
 
             <button
                 class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 @click="emit('ai', 'hats')"
             >
-                cappelli
+                Critica
             </button>
 
             <button
                 class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 @click="emit('ai', 'translate')"
             >
-                traduci
+                Traduci
             </button>
 
             <button
                 class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 @click="emit('ai', 'rewrite')"
             >
-                riscrivi
+                Riscrivi
             </button>
 
             <button
                 class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
                 @click="emit('ai', 'distant writing')"
             >
-                distant writing
+                Distant Writing
             </button>
         </div>
 
