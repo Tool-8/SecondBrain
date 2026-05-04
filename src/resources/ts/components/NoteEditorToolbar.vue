@@ -9,7 +9,7 @@ defineProps<{
 const emit = defineEmits<{
     undo: []
     redo: []
-    format: [type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'comment']
+    format: [type: 'bold' | 'italic' | 'underline' | 'strikethrough' | 'comment' | 'link']
     ai: [action: Exclude<AiAction, null>]
 }>()
 </script>
@@ -87,6 +87,30 @@ const emit = defineEmits<{
                 @click="emit('format', 'comment')"
             >
                 C
+            </button>
+
+            <button
+                class="px-2 font-bold cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
+                title="link"
+                @click="emit('format', 'link')"
+            >
+                L
+            </button>
+
+            <button
+                class="px-2 font-bold cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
+                title="elenco numerato"
+                
+            >
+                1.
+            </button>
+
+            <button
+                class="px-2 font-bold cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"
+                title="elenco puntato"
+                
+            >
+                •
             </button>
         </div>
 
