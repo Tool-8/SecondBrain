@@ -2,19 +2,24 @@
 import { computed } from 'vue'
 import GeneralButton from '@/components/GeneralButton.vue'
 
-type AiAction = 'summarize' | 'hats' | 'translate' | null
+type AiAction = 'summarize' | 'hats' | 'translate' | 'rewrite' | 'distant writing' | null
 type SummarizeMode = 'short' | 'medium' | 'long'
 type HatMode = 'white' | 'red' | 'black' | 'yellow' | 'green' | 'blue'
 type LanguageMode = 'it' | 'en' | 'fr' | 'de' | 'es'
+type RewriteStyle = 'grammar' | 'extension' | 'lexicon' | 'stylistic'
+
+
 
 const props = defineProps<{
     open: boolean
     action: AiAction
     selectedText: string
     result: string
+    loading: boolean
     summarizeMode: SummarizeMode
     hatMode: HatMode
     languageMode: LanguageMode
+    rewriteStyle: RewriteStyle[]
 }>()
 
 const emit = defineEmits<{
@@ -22,8 +27,9 @@ const emit = defineEmits<{
     (e: 'update:summarizeMode', value: SummarizeMode): void
     (e: 'update:hatMode', value: HatMode): void
     (e: 'update:languageMode', value: LanguageMode): void
+    (e: 'update:rewriteStyle', value: RewriteStyle[]): void
     (e: 'run', payload: {
-        action: 'summarize' | 'hats' | 'translate'
+        action: 'summarize' | 'hats' | 'translate' | 'rewrite' | 'distant writing'
         selectedText: string
         option: string
     }): void
@@ -32,6 +38,8 @@ const emit = defineEmits<{
 
 const panelTitle = computed(() => {
     if (props.action === 'summarize') return 'Riassumi'
+    if (props.action === 'rewrite') return 'Riscrivi'
+    if (props.action === 'distant writing') return 'Distant writing'
     if (props.action === 'hats') return 'Sei cappelli'
     if (props.action === 'translate') return 'Traduci'
     return 'AI Brain'
@@ -39,19 +47,35 @@ const panelTitle = computed(() => {
 
 const actionLabel = computed(() => {
     if (props.action === 'summarize') return 'Riassumi'
+    if (props.action === 'rewrite') return 'Riscrivi'
+    if (props.action === 'distant writing') return 'Genera'
     if (props.action === 'hats') return 'Applica cappello'
     if (props.action === 'translate') return 'Traduci'
     return 'Azione'
 })
 
+function toggleStyle(style: RewriteStyle) {
+    const current = [...props.rewriteStyle];
+    const index = current.indexOf(style);
+
+    if (index > -1) {
+        if (current.length > 1) {
+            current.splice(index, 1);
+        }
+    } else {
+        current.push(style);
+    }
+    emit('update:rewriteStyle', current);
+}
+
 function runAction() {
     if (!props.action) return
 
     let option = ''
-
     if (props.action === 'summarize') option = props.summarizeMode
     if (props.action === 'hats') option = props.hatMode
     if (props.action === 'translate') option = props.languageMode
+    if (props.action === 'rewrite') option = props.rewriteStyle.join(',')
 
     emit('run', {
         action: props.action,
@@ -59,6 +83,7 @@ function runAction() {
         option,
     })
 }
+
 </script>
 
 <template>
@@ -74,32 +99,31 @@ function runAction() {
                         {{ panelTitle }}
                     </p>
                 </div>
-
                 <button
                     class="rounded px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-neutral-800"
                     @click="$emit('close')"
                 >
-                Chiudi
+                    Chiudi
                 </button>
             </div>
 
             <div>
                 <p class="pb-1 text-xs text-gray-500 dark:text-neutral-400">Testo selezionato</p>
-                <div class="max-h-50 overflow-auto rounded bg-gray-100 p-2 dark:bg-neutral-800 whitespace-pre-wrap">
-                {{ selectedText || 'Nessun testo selezionato' }}
+                <div class="max-h-40 overflow-auto rounded bg-gray-100 p-2 dark:bg-neutral-800 whitespace-pre-wrap">
+                    {{ selectedText || 'Nessun testo selezionato' }}
                 </div>
             </div>
 
-            <div v-if="action === 'summarize'" class="flex justify-between items-center text-sm" hidden>
+            <div v-if="action === 'summarize'" class="flex justify-between items-center text-sm">
                 <p>Lunghezza</p>
                 <select
-                class="rounded border border-gray-300 px-4 py-1 text-sm dark:bg-neutral-800"
-                :value="summarizeMode"
-                @change="$emit('update:summarizeMode', ($event.target as HTMLSelectElement).value as SummarizeMode)"
+                    class="rounded border border-gray-300 px-4 py-1 text-sm dark:bg-neutral-800"
+                    :value="summarizeMode"
+                    @change="$emit('update:summarizeMode', ($event.target as HTMLSelectElement).value as SummarizeMode)"
                 >
-                <option value="short">Corto</option>
-                <option value="medium">Medio</option>
-                <option value="long">Lungo</option>
+                    <option value="short">Corto</option>
+                    <option value="medium">Medio</option>
+                    <option value="long">Lungo</option>
                 </select>
             </div>
 
@@ -134,21 +158,41 @@ function runAction() {
                 </select>
             </div>
 
-            <GeneralButton :label="actionLabel" @click="runAction" />
+            <div v-if="action === 'rewrite'" class="flex flex-col gap-2">
+                <p class="text-sm">Stile riscrittura</p>
+                <div class="flex flex-wrap gap-2">
+                    <button
+                        v-for="style in (['grammar', 'extension', 'lexicon', 'stylistic'] as RewriteStyle[])"
+                        :key="style"
+                        type="button"
+                        @click="toggleStyle(style)"
+                        :class="[
+                            'px-3 py-1 rounded-full border transition-colors text-xs capitalize',
+                            rewriteStyle.includes(style)
+                                ? 'bg-blue-600 border-blue-600 text-white' 
+                                : 'bg-transparent border-gray-300 dark:border-neutral-600 hover:bg-gray-100 dark:hover:bg-neutral-700'
+                        ]"
+                    >
+                        {{ style }}
+                    </button>
+                </div>
+            </div>
 
-            <div class="pt-4">
+            <GeneralButton :label="actionLabel" @click="runAction" :disabled="loading"/>
+
+            <div class="pt-2">
                 <p class="pb-1 text-xs text-gray-500 dark:text-neutral-400">Risultato</p>
                 <div class="max-h-60 overflow-auto rounded bg-gray-100 p-2 dark:bg-neutral-800">
-                    {{ result }}
+                    {{ result || '' }}
                 </div>
             </div>
 
             <div class="mt-auto">
                 <p class="pb-1 text-xs text-gray-500 dark:text-neutral-400">Inserisci testo</p>
                 <div class="flex gap-2">
-                    <GeneralButton label="prima" @click="$emit('insert', 'before')" />
-                    <GeneralButton label="dopo" @click="$emit('insert', 'after')" />
-                    <GeneralButton label="sostituisci" @click="$emit('insert', 'replace')" />
+                    <GeneralButton label="prima" :disabled="loading" @click="$emit('insert', 'before')" />
+                    <GeneralButton label="dopo" :disabled="loading" @click="$emit('insert', 'after')" />
+                    <GeneralButton label="sostituisci" :disabled="loading" @click="$emit('insert', 'replace')" />
                 </div>
             </div>
         </div>

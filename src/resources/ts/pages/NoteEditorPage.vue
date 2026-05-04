@@ -22,9 +22,11 @@ const {
     aiAction,
     selectedText,
     aiResult,
+    loading,
     summarizeMode,
     hatMode,
     languageMode,
+    rewriteStyle,
     renderedHtml,
     wordCount,
     charCount,
@@ -94,13 +96,17 @@ loadNote();
         :action="aiAction"
         :selected-text="selectedText"
         :result="aiResult"
+        :loading="loading"
         :summarize-mode="summarizeMode"
         :hat-mode="hatMode"
+        :rewrite-style="rewriteStyle"
         :language-mode="languageMode"
         @close="closeAiPanel"
         @update:summarizeMode="summarizeMode = $event"
         @update:hatMode="hatMode = $event"
         @update:languageMode="languageMode = $event"
+        @update:rewriteStyle="rewriteStyle = $event"
+        
         @run="handleAiRun"
         @insert="insertAiResult"
     />

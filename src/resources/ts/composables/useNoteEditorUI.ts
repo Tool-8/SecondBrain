@@ -1,12 +1,15 @@
 import { computed, ref, type Ref } from 'vue'
 import { marked } from 'marked'
 import { useToast } from '@/composables/useToast'
+import { useAi } from '@/composables/useAi'
+import { AiLang, AiTone } from '@/services/aiService'
 
 export type ViewMode = 'editor' | 'split' | 'render'
-export type AiAction = 'summarize' | 'hats' | 'translate' | null
+export type AiAction = 'summarize' | 'hats' | 'translate' | 'rewrite' | 'distant writing' | null
 export type SummarizeMode = 'short' | 'medium' | 'long'
 export type HatMode = 'white' | 'red' | 'black' | 'yellow' | 'green' | 'blue'
 export type LanguageMode = 'it' | 'en' | 'fr' | 'de' | 'es'
+export type RewriteStyle = 'grammar' | 'extension' | 'lexicon' | 'stylistic'
 export type InsertMode = 'before' | 'after' | 'replace'
 
 marked.setOptions({
@@ -19,6 +22,21 @@ export function useNoteEditorUI(options: {
     setEditorContent: (html: string) => void
 }) {
     const { warningToast } = useToast()
+    const {
+        result,
+        error,
+        loading,
+        translate,
+        summarize,
+        rewrite,
+        distantWriting,
+        bluehat,
+        redhat,
+        yellowhat,
+        greenhat,
+        whitehat,
+        blackhat,
+    } = useAi();
 
     const editorRef = ref<HTMLElement | null>(null)
 
@@ -32,6 +50,7 @@ export function useNoteEditorUI(options: {
     const summarizeMode = ref<SummarizeMode>('medium')
     const hatMode = ref<HatMode>('white')
     const languageMode = ref<LanguageMode>('en')
+    const rewriteStyle = ref<RewriteStyle[]>(['grammar'])
 
     const warnedParents = new Set<string>()
     const warnedChildren = new Set<string>()
@@ -151,14 +170,53 @@ export function useNoteEditorUI(options: {
         aiAction.value = null
     }
 
-    function handleAiRun(payload: {
+    async function handleAiRun(payload: {
         action: Exclude<AiAction, null>
         selectedText: string
         option: string
     }) {
-        console.log('AI payload', payload)
 
-        aiResult.value = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
+        switch (payload.action) {
+            case 'summarize':
+                await summarize(payload.selectedText);
+                break;
+            case 'rewrite':
+                const stylesArray = payload.option.split(',')
+                const activeStyles = stylesArray as [AiTone, ...AiTone[]]
+                await rewrite(payload.selectedText, activeStyles);
+                break;
+            case 'hats': {
+                const hatFunctions: Record<string, (text: string) => Promise<void>> = {
+                    white: whitehat,
+                    red: redhat,
+                    black: blackhat,
+                    yellow: yellowhat,
+                    green: greenhat,
+                    blue: bluehat,
+                };
+
+                const selectedHatFn = hatFunctions[payload.option];
+
+                if (selectedHatFn) await selectedHatFn(payload.selectedText);
+                break;
+            }
+            case 'translate':
+                await translate(payload.selectedText, payload.option as AiLang)
+                break;
+            case 'distant writing':
+                await distantWriting(payload.selectedText)
+                break;
+            default:
+                console.log('Hello');
+                return null;
+        }
+
+        if (error.value) {
+            warningToast('Errore AI', error.value)
+            return
+        }
+        
+        aiResult.value = result.value as string;
     }
 
     function stripAiMarkers(html: string) {
@@ -313,7 +371,7 @@ export function useNoteEditorUI(options: {
         let html = ''
 
         if (mode === 'replace') {
-            html = parentHtml + childHtml + exitHtml
+            html = childHtml + exitHtml
         }
 
         if (mode === 'before') {
@@ -451,9 +509,11 @@ export function useNoteEditorUI(options: {
         aiAction,
         selectedText,
         aiResult,
+        loading,
         summarizeMode,
         hatMode,
         languageMode,
+        rewriteStyle,
         renderedHtml,
         wordCount,
         charCount,
