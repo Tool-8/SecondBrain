@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import NoteArchiveCard from '@/components/NoteArchiveCard.vue';
 import ContextMenu from '@/components/ContextMenu.vue';
-import ToastList from '@/components/layout/ToastList.vue';
 import { computed, onMounted, ref } from 'vue';
-import { useNotes } from '@/composables/useNotes';
+import useNotes from '@/composables/useNotes';
 import { useToast } from '@/composables/useToast';
 import { useContextMenu } from '@/composables/useContextMenu';
 import type { ContextAction } from '@/types/contextaction';
@@ -11,7 +10,8 @@ import type { Note } from '@/types/note';
 import { useModals } from '@/composables/useModals';
 import GeneralButton from '@/components/GeneralButton.vue';
 
-const { successToast, errorToast, warningToast, infoToast } = useToast();
+const { errorToast } = useToast();
+
 const {
     notes,
     loading,
@@ -19,7 +19,6 @@ const {
     fetchNotes,
     renameNote,
     removeNote,
-    storeNote,
     cloneNote,
     exportNote,
     importNote,
@@ -35,17 +34,8 @@ const actions: ContextAction<Note>[] = [
         handler: async (note) => {
             const new_name = await RenamePromise.start(note.name);
             if (!new_name) return;
-            try {
-                await renameNote(note.id, new_name);
-                successToast('Rinomina effettuata', '');
-            } catch (error) {
-                errorToast(
-                    'Errore nella rinomina della nota',
-                    (error as Error).message
-                );
-            } finally {
-                await fetchNotes();
-            }
+            await renameNote(note, new_name);
+            await fetchNotes();
         },
     },
     {
@@ -64,56 +54,26 @@ const actions: ContextAction<Note>[] = [
                     }).format(new Date())
             );
             if (!clone_name) return;
-            try {
-                await cloneNote(note.id, clone_name);
-                successToast('Clonazione effettuata', '');
-            } catch (error) {
-                errorToast(
-                    'Errore nella clonazione della nota',
-                    (error as Error).message
-                );
-            } finally {
-                await fetchNotes();
-            }
+            await cloneNote(note.id, clone_name);
+            await fetchNotes();
         },
     },
     {
         label: 'Esporta in PDF',
         handler: async (note) => {
-            try {
-                await exportNote(note.id, 'pdf');
-            } catch (error) {
-                errorToast(
-                    'Errore nella generazione del PDF',
-                    (error as Error).message
-                );
-            }
+            await exportNote(note.id, 'pdf');
         },
     },
     {
         label: 'Esporta in MD',
         handler: async (note) => {
-            try {
-                await exportNote(note.id, 'md');
-            } catch (error) {
-                errorToast(
-                    'Errore nella generazione del MD',
-                    (error as Error).message
-                );
-            }
+            await exportNote(note.id, 'md');
         },
     },
     {
         label: 'Esporta in HTML',
         handler: async (note) => {
-            try {
-                await exportNote(note.id, 'html');
-            } catch (error) {
-                errorToast(
-                    'Errore nella generazione del HTML',
-                    (error as Error).message
-                );
-            }
+            await exportNote(note.id, 'html');
         },
     },
     {
@@ -121,17 +81,8 @@ const actions: ContextAction<Note>[] = [
         handler: async (note) => {
             const confirm = await DeletePromise.start();
             if (!confirm) return;
-            try {
-                await removeNote(note.id);
-                successToast('Nota eliminata', '');
-            } catch (error) {
-                errorToast(
-                    'Errore nella eliminazione della nota',
-                    (error as Error).message
-                );
-            } finally {
-                await fetchNotes();
-            }
+            await removeNote(note.id);
+            await fetchNotes();
         },
         variant: 'warning',
     },
@@ -157,17 +108,8 @@ const importEvent = async (event: Event) => {
         );
         return;
     }
-
-    try {
-        await importNote(file);
-    } catch (error) {
-        errorToast(
-            "Errore nell'importazione della nota",
-            (error as Error).message
-        );
-    } finally {
-        await fetchNotes();
-    }
+    await importNote(file);
+    await fetchNotes();
 };
 </script>
 
