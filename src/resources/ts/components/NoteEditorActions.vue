@@ -11,13 +11,13 @@ const { saveTheNote, saveTheNoteAs, isNew } = useNoteEditor();
                 label="Salva con nome"
                 class="disabled:opacity-50 disabled:pointer-events-none"
                 :disabled="isNew"
-                @click="saveTheNoteAs"
+                @click="saveTheNoteAs()"
             />
         </div>
         <div class="self-start">
             <GeneralButton
                 label="Salva"
-                @click="saveTheNote"
+                @click="saveTheNote()"
             />
         </div>
     </div>
