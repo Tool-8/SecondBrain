@@ -12,6 +12,15 @@ export type LanguageMode = 'it' | 'en' | 'fr' | 'de' | 'es'
 export type RewriteStyle = 'grammar' | 'extension' | 'lexicon' | 'stylistic'
 export type InsertMode = 'before' | 'after' | 'replace'
 
+marked.use({
+  renderer: {
+    link({ href, title, text }) {
+      const fixedHref = /^https?:\/\//.test(href) ? href : `https://${href}`;
+      return `<a href="${fixedHref}" target="_blank" rel="noopener noreferrer"${title ? ` title="${title}"` : ''}>${text}</a>`;
+    }
+  }
+});
+
 marked.setOptions({
     gfm: true,
     breaks: true,
