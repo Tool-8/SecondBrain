@@ -4,8 +4,12 @@ import NoteEditorHeader from '@/components/NoteEditorHeader.vue';
 import NoteEditorToolbar from '@/components/NoteEditorToolbar.vue';
 import NoteEditorContent from '@/components/NoteEditorContent.vue';
 
+import { onBeforeRouteLeave } from 'vue-router';
 import { provideNoteEditor } from '@/composables/useNoteEditor';
 import { useNoteEditorUI } from '@/composables/useNoteEditorUI';
+import { useModals } from '@/composables/useModals';
+
+const { DiscardPromise } = useModals()
 
 const {
     noteName,
@@ -48,6 +52,23 @@ const {
     setEditorContent,
 });
 loadNote();
+
+onBeforeRouteLeave(async (to, from, next) => {
+    if (!isDirty.value) return next();
+
+    const response = await DiscardPromise.start();
+
+    if (response === 'save') {
+        await saveTheNote();
+        next();
+    } else if (response === 'discard') {
+        next();
+    } else {
+        next(false);
+    }
+});
+
+
 </script>
 
 <template>

@@ -2,7 +2,7 @@
 import BaseModal from '@/components/layout/BaseModal.vue';
 import { useModals } from '@/composables/useModals';
 
-const { RenamePromise, DeletePromise, ClonePromise, SavePromise } = useModals();
+const { RenamePromise, DeletePromise, ClonePromise, SavePromise, DiscardPromise } = useModals();
 </script>
 
 <template>
@@ -141,6 +141,39 @@ const { RenamePromise, DeletePromise, ClonePromise, SavePromise } = useModals();
             </template>
         </BaseModal>
     </SavePromise>
+
+    <DiscardPromise v-slot="{ resolve }">
+        <BaseModal title="Modifiche non salvate">
+            <template #body>
+                <div class="mt-4">
+                    <p class="text-pretty text-gray-700 dark:text-gray-200">
+                        Ci sono delle modifiche alla nota. Vuoi salvarle prima di uscire?
+                    </p>
+                </div>
+            </template>
+            <template #footer>
+                <button
+                    @click="resolve('cancel')"
+                    class="cursor-pointer min-w-22 rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-neutral-800 dark:text-gray-200 dark:hover:bg-neutral-700"
+                >
+                    Annulla
+                </button>
+                <button
+                    @click="resolve('discard')"
+                    class="cursor-pointer min-w-22 rounded bg-red-100 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                >
+                    Esci senza salvare
+                </button>
+                <button
+                    @click="resolve('save')"
+                    class="cursor-pointer min-w-22 rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+                >
+                    Salva ed esci
+                </button>
+            </template>
+        </BaseModal>
+    </DiscardPromise>
+
 </template>
 
 <style scoped></style>
