@@ -2,8 +2,8 @@ DOCKER_UID := $(shell id -u)
 DOCKER_GID := $(shell id -g)
 
 BASE_COMPOSE = DOCKER_UID=$(DOCKER_UID) DOCKER_GID=$(DOCKER_GID) docker compose -f docker-compose.yml
-DEV_COMPOSE = DOCKER_UID=$(DOCKER_UID) DOCKER_GID=$(DOCKER_GID) docker compose -f docker-compose.yml -f docker-compose.dev.yml
-PROD_COMPOSE = DOCKER_UID=$(DOCKER_UID) DOCKER_GID=$(DOCKER_GID) docker compose -f docker-compose.yml -f docker-compose.prod.yml
+DEV_COMPOSE = $(BASE_COMPOSE) -f docker-compose.dev.yml
+PROD_COMPOSE = $(BASE_COMPOSE) -f docker-compose.prod.yml
 
 up:
 	$(DEV_COMPOSE) up -d --build
