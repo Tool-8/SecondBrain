@@ -27,13 +27,24 @@ vi.mock('@/composables/useToast', () => ({
 
 beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(noteService.rename).mockResolvedValue(mockNote as Note);
 });
 
 describe('useNotes', () => {
 
-    // TEST PER LA RINOMINA
+    // ---------- TEST PER LA RINOMINAZIONE ----------
+
+    it('passes the new name to the noteService when renaming the note correctly', async () => {
+        vi.mocked(noteService.rename).mockResolvedValue(mockNote as Note);
+
+        const { renameNote } = useNotes();
+        const newName = 'New Note Name';
+        await renameNote(mockNote as Note, newName);
+        expect(noteService.rename).toHaveBeenCalledWith(mockNote.id, newName);
+    });
+
     it('shows info toast when renaming a note with the same name', async () => {
+        vi.mocked(noteService.rename).mockResolvedValue(mockNote as Note);
+
         const { renameNote } = useNotes();
         await renameNote(mockNote as Note, mockNote.name);
         expect(mockToast.infoToast).toHaveBeenCalledWith(
@@ -42,5 +53,29 @@ describe('useNotes', () => {
         );
     });
 
+    it('shows success toast when renaming a note with a different name', async () => {
+        vi.mocked(noteService.rename).mockResolvedValue(mockNote as Note);
 
+        const { renameNote } = useNotes();
+        const newName = 'New Note Name';
+        await renameNote(mockNote as Note, newName);
+        expect(mockToast.successToast).toHaveBeenCalledWith(
+            'Nota rinominata con successo',
+            ''
+        );
+    });
+
+    it('shows error toast when service throws an error', async () => {
+        vi.mocked(noteService.rename).mockRejectedValue(
+            new Error('Service Error')
+        );
+
+        const { renameNote } = useNotes();
+        const newName = 'New Note Name';
+        await renameNote(mockNote as Note, newName);
+        expect(mockToast.errorToast).toHaveBeenCalledWith(
+            'Errore durante la rinominazione della nota',
+            'Service Error'
+        );
+    });
 });
