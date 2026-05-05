@@ -61,7 +61,6 @@ function useNoteEditorState() {
         if (!newNote) return;
         (originalNote.value as Note) = newNote;
         updateNote();
-        await router.replace(`/notes/${newNote.id}`);
     };
 
     const overwrite = async () => {
@@ -79,7 +78,6 @@ function useNoteEditorState() {
         if (!newNote) return;
         (originalNote.value as Note) = newNote;
         updateNote();
-        await router.replace(`/notes/${newNote.id}`);
     };
 
     const update = async (id: string) => {
@@ -91,7 +89,7 @@ function useNoteEditorState() {
         updateNote();
     };
 
-    async function saveTheNoteAs() {
+    async function saveTheNoteAs(exit: boolean = false) {
         const id = route.params.id as string | undefined;
 
         // Errore: la nota non è ancora presente nell'archivio
@@ -101,20 +99,23 @@ function useNoteEditorState() {
         }
 
         await saveAs();
+        if (!originalNote.value || exit) return;
+        await router.replace(`/notes/${originalNote.value.id}`);
     }
 
-    async function saveTheNote() {
+    async function saveTheNote(exit: boolean = false) {
         const id = route.params.id as string | undefined;
 
         // Primo salvataggio nota
         if (!originalNote.value || !id) {
             await saveNew();
+            if(!originalNote.value || exit) return;
+            await router.replace(`/notes/${originalNote.value.id}`);
             return;
         }
 
         // Salvataggio nota esistente
         try {
-            console.log(noteName.value);
             const updatedNote = await saveNote(originalNote.value, noteContent.value, noteName.value);
             if (!updatedNote) return;
             (originalNote.value as Note) = updatedNote;
@@ -132,6 +133,8 @@ function useNoteEditorState() {
                     }
                     case 'save as': {
                         await saveAs();
+                        if (exit) return;
+                        await router.replace(`/notes/${originalNote.value.id}`);
                         break;
                     }
                     case 'update': {

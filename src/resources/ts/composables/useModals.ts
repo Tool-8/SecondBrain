@@ -16,11 +16,16 @@ const SavePromise = createTemplatePromise<"overwrite" | "save as" | "update" | n
     singleton: true,
 });
 
+const DiscardPromise = createTemplatePromise<"cancel" | "discard" | "save" | null>({
+    singleton: true,
+});
+
 export function useModals() {
     return {
         RenamePromise,
         DeletePromise,
         ClonePromise,
         SavePromise,
+        DiscardPromise
     };
 }
