@@ -59,9 +59,9 @@ onBeforeRouteLeave(async (to, from, next) => {
     const response = await DiscardPromise.start();
 
     if (response === 'save') {
-        await saveTheNote();
+        await saveTheNote(true);
         if(isDirty.value) {
-            return next(false);    
+            return next(false);
         }
         next();
     } else if (response === 'discard') {
@@ -130,7 +130,7 @@ onBeforeRouteLeave(async (to, from, next) => {
         @update:hatMode="hatMode = $event"
         @update:languageMode="languageMode = $event"
         @update:rewriteStyle="rewriteStyle = $event"
-        
+
         @run="handleAiRun"
         @insert="insertAiResult"
     />
