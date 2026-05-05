@@ -60,6 +60,9 @@ onBeforeRouteLeave(async (to, from, next) => {
 
     if (response === 'save') {
         await saveTheNote();
+        if(isDirty.value) {
+            return next(false);    
+        }
         next();
     } else if (response === 'discard') {
         next();
