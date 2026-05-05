@@ -41,13 +41,13 @@ watch(
 <template>
     <div
         id="view_container"
-        class="flex w-full h-full divide-x-1 divide-gray-100 dark:divide-neutral-800"
+        class="flex w-full flex-1 items-stretch divide-x-1 divide-gray-100 dark:divide-neutral-800"
     >
         <section
             v-show="viewMode === 'editor' || viewMode === 'split'"
             id="editor"
             ref="editor"
-            class="p-6 flex-1 min-w-0 font-jetbrains h-full focus:outline-none"
+            class="p-6 flex-1 min-w-0 font-jetbrains min-h-full focus:outline-none"
             contenteditable="true"
             spellcheck="false"
             @input="emit('input')"
@@ -59,7 +59,7 @@ watch(
         <section
             v-show="viewMode === 'render' || viewMode === 'split'"
             id="render"
-            class="p-6 flex-1 min-w-0 overflow-auto"
+            class="p-6 flex-1 min-w-0 min-h-full"
         >
             <div class="prose max-w-none dark:prose-invert" v-html="renderedHtml"></div>
         </section>

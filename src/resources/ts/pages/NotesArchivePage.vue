@@ -26,7 +26,18 @@ const {
 const { RenamePromise, DeletePromise, ClonePromise } = useModals();
 
 onMounted(() => fetchNotes());
-const noteCount = computed(() => notes.value.length);
+const noteCount = computed(() => filteredNotes.value.length);
+const searchQuery = ref('');
+
+const filteredNotes = computed(() => {
+    const query = searchQuery.value.trim().toLowerCase();
+
+    if (!query) return notes.value;
+
+    return notes.value.filter((note) =>
+        note.name.toLowerCase().includes(query)
+    );
+});
 
 const actions: ContextAction<Note>[] = [
     {
@@ -163,7 +174,9 @@ const importEvent = async (event: Event) => {
 
                     <input
                         id="Search"
+                        v-model="searchQuery"
                         type="text"
+                        placeholder="Cerca per titolo..."
                         class="py-2 pl-8 w-full rounded border border-gray-200 pe-10 shadow-xs sm:text-sm focus:outline-blue-400 focus:outline-1 dark:border-neutral-700"
                     />
                 </div>
@@ -179,7 +192,7 @@ const importEvent = async (event: Event) => {
         <div v-else-if="error">{{ error }}</div>
         <ul v-else class="pt-3 space-y-4">
             <NoteArchiveCard
-                v-for="note in notes"
+                v-for="note in filteredNotes"
                 :key="note.id"
                 :id="note.id"
                 :name="note.name"

@@ -200,6 +200,8 @@ export function useNoteEditorUI(options: {
         option: string
     }) {
 
+        aiResult.value = 'LOREM IPSUM'; return; // RIMUOVII!!
+
         switch (payload.action) {
             case 'summarize':
                 await summarize(payload.selectedText);
@@ -342,6 +344,21 @@ export function useNoteEditorUI(options: {
         `
     }
 
+    function getAiBlockFromRange(range: Range) {
+        const node = range.commonAncestorContainer
+        const el = node instanceof HTMLElement ? node : node.parentElement
+
+        return el?.closest('[data-ai-parent], [data-ai-child]') as HTMLElement | null
+    }
+
+    function insertHtmlOutsideElement(
+        target: HTMLElement,
+        html: string,
+        mode: 'before' | 'after'
+    ) {
+        target.insertAdjacentHTML(mode === 'before' ? 'beforebegin' : 'afterend', html)
+    }
+
     function insertAiResult(mode: InsertMode) {
         if (!editorRef.value || !selectedRange.value || !aiResult.value) return
 
@@ -384,6 +401,36 @@ export function useNoteEditorUI(options: {
             html = parentHtml + childHtml + exitHtml
         }
 
+        const aiBlock = getAiBlockFromRange(range)
+
+        if (aiBlock && mode === 'replace') {
+            const selection = window.getSelection()
+            selection?.removeAllRanges()
+            selection?.addRange(range)
+
+            document.execCommand('insertHTML', false, escapeHtml(aiResult.value))
+
+            handleEditorInput()
+            closeAiPanel()
+            return
+        }
+
+        if (aiBlock && (mode === 'before' || mode === 'after')) {
+            const outputOnlyHtml = childHtml + exitHtml
+
+            insertHtmlOutsideElement(aiBlock, outputOnlyHtml, mode)
+
+            const exit = editorRef.value.querySelector(
+                '[data-normal-block="true"]:last-child'
+            ) as HTMLElement | null
+
+            if (exit) moveCursorToElement(exit)
+
+            handleEditorInput()
+            closeAiPanel()
+            return
+        }
+
         const selection = window.getSelection()
         selection?.removeAllRanges()
         selection?.addRange(range)
@@ -394,13 +441,11 @@ export function useNoteEditorUI(options: {
             '[data-normal-block="true"]:last-child'
         ) as HTMLElement | null
 
-        if (exit) {
-            moveCursorToElement(exit)
-        }
+        if (exit) moveCursorToElement(exit)
 
         handleEditorInput()
         closeAiPanel()
-        }
+    }
 
     function handleBeforeInput() {
         const selection = window.getSelection()

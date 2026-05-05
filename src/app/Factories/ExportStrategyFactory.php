@@ -6,6 +6,7 @@
     use App\Strategies\HtmlExport;
     use App\Strategies\MdExport;
     use App\Strategies\PdfExport;
+    use App\Services\EditorContentFormatter;
     use InvalidArgumentException;
     use Parsedown;
 
@@ -13,8 +14,8 @@
         public function make(string $format) : ExportStrategyInterface {
             return match ($format) {
                 'md' => new MdExport(),
-                'html' => new HtmlExport(new Parsedown()),
-                'pdf' => new PdfExport(new Parsedown()),
+                'html' => new HtmlExport(new Parsedown(), new EditorContentFormatter()),
+                'pdf' => new PdfExport(new Parsedown(), new EditorContentFormatter()),
         
                 default => throw new InvalidArgumentException("Unknown format: {$format}"),
             };

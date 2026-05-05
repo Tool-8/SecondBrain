@@ -7,15 +7,17 @@ import { Note, NoteWithContent } from '@/types/note';
 import router from '@/router';
 import { NoteNotUpdatedError } from '@/errors/noteErrors';
 
-function normalizeEditorHtml(html: string) {
-    const div = document.createElement('div');
-    div.innerHTML = html;
+function normalizeEditorHtml(html: string = '') {
+    const div = document.createElement('div')
+    div.innerHTML = html
 
     div.querySelectorAll('[data-ai-parent], [data-ai-child]').forEach((el) => {
-        el.replaceWith(document.createTextNode(el.textContent || ''));
-    });
+        el.replaceWith(document.createTextNode(el.textContent || ''))
+    })
 
-    return div.innerText;
+    return div.innerHTML
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\sdata-v-[^=]+=""/g, '')
 }
 
 function useNoteEditorState() {
@@ -35,14 +37,16 @@ function useNoteEditorState() {
     const { RenamePromise, SavePromise } = useModals();
 
     watch([noteContent, noteName], ([newContent, newName]) => {
-        if (!originalNote.value) isDirty.value = true;
-        else {
-            isDirty.value =
-            normalizeEditorHtml(newContent) !==
-            normalizeEditorHtml(originalNote.value?.content) ||
-            newName !== originalNote.value?.name
+        if (!originalNote.value) {
+            isDirty.value = true
+            return
         }
-    });
+
+        isDirty.value =
+            normalizeEditorHtml(newContent) !==
+            normalizeEditorHtml(originalNote.value.content) ||
+            newName !== originalNote.value.name
+    })
 
     function setEditorContent(html: string) {
         noteContent.value = html;
