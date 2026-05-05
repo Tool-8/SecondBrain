@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import GeneralButton from '@/components/GeneralButton.vue'
+import { useToast } from '@/composables/useToast'
+
+const { successToast, errorToast } = useToast() 
 
 type AiAction = 'summarize' | 'hats' | 'translate' | 'rewrite' | 'distant writing' | null
 type SummarizeMode = 'short' | 'medium' | 'long'
@@ -66,6 +69,16 @@ function toggleStyle(style: RewriteStyle) {
         current.push(style);
     }
     emit('update:rewriteStyle', current);
+}
+
+function copyToClipboard() {
+    if (!props.result) return
+    
+    navigator.clipboard.writeText(props.result).then(() => {
+        successToast('Copiato', 'Risultato copiato negli appunti')
+    }).catch(err => {
+        errorToast('Errore durante la copia', 'Qualcosa è andato storto durante la copia')
+    })
 }
 
 function runAction() {
@@ -181,7 +194,16 @@ function runAction() {
             <GeneralButton :label="actionLabel" @click="runAction" :disabled="loading"/>
 
             <div class="pt-2">
-                <p class="pb-1 text-xs text-gray-500 dark:text-neutral-400">Risultato</p>
+                <div class="flex justify-between items-center pb-1">
+                    <p class="text-xs text-gray-500 dark:text-neutral-400">Risultato</p>
+                    <button 
+                        v-if="result"
+                        @click="copyToClipboard"
+                        class="text-[10px] uppercase tracking-wider font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                    >
+                        Copia
+                    </button>
+                </div>
                 <div class="max-h-60 overflow-auto rounded bg-gray-100 p-2 dark:bg-neutral-800">
                     {{ result || '' }}
                 </div>
