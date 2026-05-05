@@ -20,7 +20,7 @@ function normalizeEditorHtml(html: string) {
 
 function useNoteEditorState() {
     const { errorToast, warningToast, successToast } = useToast();
-    const { getNote, saveNote, storeNote } = useNotes();
+    const { getNote, saveNote, storeNote, exportNoteFromRaw } = useNotes();
     const route = useRoute();
 
     const noteContent = ref('');
@@ -146,6 +146,14 @@ function useNoteEditorState() {
         }
     }
 
+    async function exportTheNote(format: 'pdf' | 'md' | 'html') {
+        await exportNoteFromRaw(
+            noteName.value.length > 0 ? noteName.value : 'Nota senza nome',
+            noteContent.value,
+            format
+        );
+    }
+
     async function loadNote() {
         const id = route.params.id as string | undefined;
 
@@ -168,6 +176,7 @@ function useNoteEditorState() {
         isDirty,
         saveTheNote,
         saveTheNoteAs,
+        exportTheNote,
         isNew,
         loadNote,
         setEditorContent,

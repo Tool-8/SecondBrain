@@ -8,7 +8,7 @@ function useNotes() {
     const notes = ref<Note[]>([])
     const loading = ref(false)
     const error = ref<string | null>(null)
-    const { errorToast, infoToast, successToast } = useToast()
+    const { errorToast, infoToast, warningToast, successToast } = useToast()
 
     const fetchNotes = async () => {
         loading.value = true;
@@ -143,7 +143,20 @@ function useNotes() {
         } catch (e) {
             errorToast("Errore durante l'esportazione della nota", (e as Error).message);
         }
+    }
 
+    const exportNoteFromRaw = async (name: string, content: string, format: 'pdf' | 'md' | 'html') => {
+        if (!content) {
+            warningToast('Nessun contenuto da esportare', '');
+            return;
+        }
+
+        try {
+            await noteService.exportRaw(name, content, format);
+            successToast("Nota esportata con successo", "");
+        } catch (e) {
+            errorToast("Errore durante l'esportazione della nota", (e as Error).message);
+        }
     }
 
     const importNote = async (file: File) => {
@@ -161,7 +174,6 @@ function useNotes() {
         } catch (e) {
             errorToast("Errore durante l'importazione della nota", (e as Error).message);
         }
-
     }
 
     return {
@@ -174,6 +186,7 @@ function useNotes() {
         storeNote,
         cloneNote,
         exportNote,
+        exportNoteFromRaw,
         getNote,
         updateNote,
         saveNote,

@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import GeneralButton from '@/components/GeneralButton.vue';
 import { useNoteEditor } from '@/composables/useNoteEditor';
-const { saveTheNote, saveTheNoteAs, isNew } = useNoteEditor();
+const { saveTheNote, saveTheNoteAs, exportTheNote, isNew } = useNoteEditor();
 </script>
 
 <template>
     <div class="flex flex-row gap-2 justify-end">
+        <div class="self-start">
+            <GeneralButton
+                label="Esporta in..."
+                @click="exportTheNote('pdf')"
+            />
+        </div>
         <div class="self-start">
             <GeneralButton
                 label="Salva con nome"

@@ -2,6 +2,7 @@ import apiClient from '@/services/apiClient';
 import type { Note, NoteWithContent, NoteAPI } from '@/types/note';
 import { serviceHandler } from '@/utils/serviceHandler';
 import { title } from 'node:process';
+import { AxiosResponse } from 'axios';
 
 function formatDate(timestamp: string): string {
     const date = new Date(timestamp);
@@ -35,6 +36,19 @@ function mapNoteWithContent(raw: NoteAPI): NoteWithContent {
         ...mapNote(raw),
         content: raw.content_md,
     };
+}
+
+function noteBlobHandler(response: AxiosResponse<any>, format: 'pdf' | 'md' | 'html') {
+    const disposition = response.headers['content-disposition'];
+    const filename =
+        disposition?.split('filename=')[1]?.replace(/"/g, '') ??
+        `nota.${format}`;
+    const url = URL.createObjectURL(response.data);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    link.click();
+    URL.revokeObjectURL(url);
 }
 
 export const noteService = {
@@ -81,19 +95,19 @@ export const noteService = {
                     format,
                 },
                 responseType: 'blob',
-            }).then(response => {
-                const disposition = response.headers['content-disposition'];
-                const filename =
-                    disposition?.split('filename=')[1]?.replace(/"/g, '') ??
-                    `nota.${format}`;
-                const url = URL.createObjectURL(response.data);
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', filename);
-                link.click();
-                URL.revokeObjectURL(url);
-            })
-        )
+            }).then(response => noteBlobHandler(response, format))
+        );
+    },
+    exportRaw: async (name: string, content: string, format: 'pdf' | 'md' | 'html'): Promise<void> => {
+        return serviceHandler(() =>
+            apiClient.post('/notes/export', {
+                title: name,
+                content: content,
+                format,
+            }, {
+                responseType: 'blob',
+            }).then(response => noteBlobHandler(response, format))
+        );
     },
     import: async (file: FormData): Promise<Note> => {
         return serviceHandler(() =>
@@ -101,6 +115,7 @@ export const noteService = {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
-            })).then(response => mapNote(response.data));
+            }).then(response => mapNote(response.data))
+        );
     }
 };

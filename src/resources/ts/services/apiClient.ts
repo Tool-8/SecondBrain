@@ -12,4 +12,21 @@ const apiClient: AxiosInstance = axios.create({
     },
 });
 
+apiClient.interceptors.response.use(
+    response => response,
+
+    // Converte il blob in json se il backend ritorna un errore
+    async error => {
+        if (error.response?.data instanceof Blob) {
+            const text = await error.response.data.text();
+            try {
+                error.response.data = JSON.parse(text);
+            } catch {
+                error.response.data = { message: text };
+            }
+        }
+        return Promise.reject(error);
+    }
+)
+
 export default apiClient;
