@@ -21,6 +21,12 @@ export function useContextMenu<T>() {
         selectedItem.value = item;
     };
 
+    const openAt = (x: number, y: number, item: T) => {
+        isOpen.value = true;
+        position.value = { x, y };
+        selectedItem.value = item;
+    }
+
     const close = () => {
         isOpen.value = false;
         selectedItem.value = null;
@@ -31,6 +37,7 @@ export function useContextMenu<T>() {
         position,
         selectedItem,
         open,
+        openAt,
         close,
     };
 }
