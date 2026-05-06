@@ -2,7 +2,7 @@
     namespace App\Strategies;
 
     use App\Strategies\ExportStrategyInterface;
-    use App\Services\EditorContentFormatter;
+    use App\Utilities\EditorContentFormatter;
     use Barryvdh\DomPDF\Facade\Pdf;
     use Parsedown;
 
