@@ -22,6 +22,14 @@ describe('serviceHandler', () => {
             .toThrow('Errore dal server');
     });
 
+    it('lancia un errore generico se la risposta axios non ha response', async () => {
+        const axiosError = new axios.AxiosError('errore', '500', undefined, undefined, undefined);
+
+        await expect(serviceHandler(() => Promise.reject(axiosError)))
+            .rejects
+            .toThrow('Errore sconosciuto');
+    });
+
     it('lancia un errore generico se la risposta axios non ha messaggio', async () => {
         const axiosError = new axios.AxiosError('errore', '500', undefined, undefined, {
             data: {},
