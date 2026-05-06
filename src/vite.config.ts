@@ -32,6 +32,12 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'clover'],
       reportsDirectory: 'build/logs/coverage',
+      include: ['resources/ts/**/*.{ts,vue}'],
+      exclude: [
+        'resources/ts/app.ts',
+        'resources/ts/**/*.d.ts',
+        'resources/ts/tests/**',
+      ],
     },
   },
 });
