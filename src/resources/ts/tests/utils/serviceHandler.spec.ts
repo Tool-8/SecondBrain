@@ -36,6 +36,20 @@ describe('serviceHandler', () => {
             .toThrow('Errore sconosciuto');
     });
 
+    it('lancia un errore generico se la risposta axios non ha data', async () => {
+        const axiosError = new axios.AxiosError('errore', '500', undefined, undefined, {
+            data: null,
+            status: 500,
+            statusText: 'Internal Server Error',
+            headers: {},
+            config: { headers: {} } as any,
+        });
+
+        await expect(serviceHandler(() => Promise.reject(axiosError)))
+            .rejects
+            .toThrow('Errore sconosciuto');
+    });
+
     it('lancia un errore generico se non è un errore axios', async () => {
         await expect(serviceHandler(() => Promise.reject(new Error('altro errore'))))
             .rejects
