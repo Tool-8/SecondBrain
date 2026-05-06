@@ -4,13 +4,14 @@
     use Tests\TestCase;
     use App\Strategies\HtmlExport;
     use Parsedown;
+    use App\Utilities\EditorContentFormatter;
 
     class HtmlExportTest extends TestCase {
         private HtmlExport $strategy;
 
         protected function setUp(): void {
             parent::setUp();
-            $this->strategy = new HtmlExport(new Parsedown());
+            $this->strategy = new HtmlExport(new Parsedown(), new EditorContentFormatter());
         }
 
         public function test_export_returns_content() : void {
@@ -21,12 +22,16 @@
             <head>
                 <meta charset=\"UTF-8\">
                 <title>Titolo Nota</title>
+                <style>
+                    body {
+                        font-family: DejaVu Sans, sans-serif;
+                    }
+                </style>
             </head>
             <body>
                 <h1>Prova</h1>
             </body>
-            </html>
-            ";
+            </html>";
             $result = $this->strategy->export($content, 'Titolo Nota');
             $this->assertSame($html_content, $result);
         }
@@ -39,12 +44,16 @@
             <head>
                 <meta charset=\"UTF-8\">
                 <title>Titolo Nota</title>
+                <style>
+                    body {
+                        font-family: DejaVu Sans, sans-serif;
+                    }
+                </style>
             </head>
             <body>
                 " . $content . "
             </body>
-            </html>
-            ";
+            </html>";
             $result = $this->strategy->export($content, 'Titolo Nota');
             $this->assertSame($html_content, $result);
         }

@@ -6,7 +6,7 @@
     use App\Strategies\HtmlExport;
     use App\Strategies\MdExport;
     use App\Strategies\PdfExport;
-    use App\Services\EditorContentFormatter;
+    use App\Utilities\EditorContentFormatter;
     use InvalidArgumentException;
     use Parsedown;
 

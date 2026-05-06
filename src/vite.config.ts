@@ -22,11 +22,16 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': '/var/www/html/resources/ts',
+      '@': new URL('./resources/ts', import.meta.url).pathname,
     },
   },
   test: {
-      globals: true,
-      environment: 'jsdom',
+    globals: true,
+    environment: 'jsdom',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'clover'],
+      reportsDirectory: 'build/logs/coverage',
+    },
   },
 });
