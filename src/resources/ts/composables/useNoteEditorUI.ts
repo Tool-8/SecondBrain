@@ -10,7 +10,7 @@ export type SummarizeMode = 'short' | 'medium' | 'long'
 export type HatMode = 'white' | 'red' | 'black' | 'yellow' | 'green' | 'blue'
 export type LanguageMode = 'it' | 'en' | 'fr' | 'de' | 'es'
 export type RewriteStyle = 'grammar' | 'extension' | 'lexicon' | 'stylistic'
-export type InsertMode = 'before' | 'after' | 'replace'
+export type InsertMode = 'before' | 'after' | 'replace' | 'bottom'
 
 marked.use({
   renderer: {
@@ -250,7 +250,10 @@ export function useNoteEditorUI(options: {
         div.innerHTML = html
 
         div.querySelectorAll('[data-ai-parent], [data-ai-child]').forEach(el => {
-        el.replaceWith(document.createTextNode(el.textContent || ''))
+            el.querySelectorAll('[data-ai-retranslate]').forEach(button => button.remove())
+
+            const content = el.querySelector('[data-ai-content]') as HTMLElement | null
+            el.replaceWith(document.createTextNode(content?.textContent || el.textContent || ''))
         })
 
         return div.innerText
@@ -323,18 +326,34 @@ export function useNoteEditorUI(options: {
         aiIndex: number
         text: string
         hidden?: boolean
-        }) {
+        action?: Exclude<AiAction, null>
+        lang?: LanguageMode
+    }) {
+
         const attr =
             options.type === 'parent'
-            ? `data-ai-parent="${options.groupId}" data-ai-label="AI #${options.aiIndex} input"`
-            : `data-ai-child="${options.groupId}" data-ai-label="AI #${options.aiIndex} output"`
+                ? `data-ai-parent="${options.groupId}" data-ai-label="AI #${options.aiIndex} input"`
+                : `
+                    data-ai-child="${options.groupId}"
+                    data-ai-label="AI #${options.aiIndex} output"
+                    data-ai-action="${options.action ?? ''}"
+                    data-ai-lang="${options.lang ?? ''}"
+                `
+
+        const retranslateButton =
+            options.type === 'child' && options.action === 'translate'
+                ? `<button type="button" data-ai-retranslate="true" contenteditable="false" class="ai-retranslate-btn hidden">Ritraduci</button>`
+                : ''
 
         return `
             <div
-            class="ai-marker ai-${options.type}"
-            ${attr}
-            ${options.hidden ? 'hidden' : ''}
-            >${escapeHtml(options.text)}</div>
+                class="ai-marker ai-${options.type}"
+                ${attr}
+                ${options.hidden ? 'hidden' : ''}
+            >
+                <span data-ai-content="true">${escapeHtml(options.text)}</span>
+                ${retranslateButton}
+            </div>
         `
     }
 
@@ -383,6 +402,8 @@ export function useNoteEditorUI(options: {
             groupId,
             aiIndex,
             text: aiResult.value,
+            action: aiAction.value ?? undefined,
+            lang: aiAction.value === 'translate' ? languageMode.value : undefined,
         })
 
         const exitHtml = createExitBlockHtml()
@@ -431,6 +452,22 @@ export function useNoteEditorUI(options: {
             return
         }
 
+        if (mode === 'bottom') {
+            html = childHtml + exitHtml
+
+            editorRef.value.insertAdjacentHTML('beforeend', html)
+
+            const exit = editorRef.value.querySelector(
+                '[data-normal-block="true"]:last-child'
+            ) as HTMLElement | null
+
+            if (exit) moveCursorToElement(exit)
+
+            handleEditorInput()
+            closeAiPanel()
+            return
+        }
+
         const selection = window.getSelection()
         selection?.removeAllRanges()
         selection?.addRange(range)
@@ -463,16 +500,26 @@ export function useNoteEditorUI(options: {
         const childMarker = el.closest('[data-ai-child]') as HTMLElement | null
 
         if (parentMarker) {
-        const id = parentMarker.dataset.aiParent
+            const id = parentMarker.dataset.aiParent
+            const child = editorRef.value?.querySelector(
+                `[data-ai-child="${id}"][data-ai-action="translate"]`
+            ) as HTMLElement | null
 
-        if (id && !warnedParents.has(id)) {
-            warnedParents.add(id)
+            if (child) {
+                child.dataset.aiDirty = 'true'
 
-            warningToast(
-            'Attenzione',
-            'Stai modificando testo da cui è stato generato testo AI.'
-            )
-        }
+                const button = child.querySelector('[data-ai-retranslate]') as HTMLElement | null
+                button?.classList.remove('hidden')
+            }
+
+            if (id && !warnedParents.has(id)) {
+                warnedParents.add(id)
+
+                warningToast(
+                'Attenzione',
+                'Stai modificando testo da cui è stato generato testo AI.'
+                )
+            }
         }
 
         if (childMarker) {
@@ -489,6 +536,43 @@ export function useNoteEditorUI(options: {
         }
     }
 
+    async function retranslateAiBlock(child: HTMLElement) {
+        const groupId = child.dataset.aiChild
+        const lang = child.dataset.aiLang as AiLang | undefined
+
+        if (!groupId || !lang) return
+
+        const parent = editorRef.value?.querySelector(
+            `[data-ai-parent="${groupId}"]`
+        ) as HTMLElement | null
+
+        if (!parent) return
+
+        const parentContent = parent.querySelector('[data-ai-content]') as HTMLElement | null
+        const sourceText = (parentContent?.innerText ?? parent.innerText).trim()
+        if (!sourceText) return
+
+        const content = child.querySelector('[data-ai-content]') as HTMLElement | null
+        const button = child.querySelector('[data-ai-retranslate]') as HTMLElement | null
+
+        if (!content) return
+
+        content.textContent = 'Testo ritradotto!' // test temporaneo
+        /*
+        await translate(sourceText, lang)
+        if (error.value) {
+            warningToast('Errore AI', error.value)
+            return
+        }
+        
+
+        content.textContent = result.value ?? ''*/
+        delete child.dataset.aiDirty
+        button?.classList.add('hidden')
+
+        handleEditorInput()
+    }
+
     function htmlToMarkdownText(html: string) {
         const div = document.createElement('div')
         div.innerHTML = html
@@ -497,26 +581,31 @@ export function useNoteEditorUI(options: {
             (el) => {
                 if (el.previousSibling?.nodeType === Node.TEXT_NODE) {
                     el.previousSibling.textContent =
-                        el.previousSibling.textContent?.replace(
-                            /[ \t]+$/,
-                            ''
-                        ) ?? '';
+                        el.previousSibling.textContent?.replace(/[ \t]+$/, '') ?? ''
                 }
+
                 if (el.nextSibling?.nodeType === Node.TEXT_NODE) {
                     el.nextSibling.textContent =
-                        el.nextSibling.textContent?.replace(/^[ \t]+/, '') ??
-                        '';
+                        el.nextSibling.textContent?.replace(/^[ \t]+/, '') ?? ''
                 }
 
-                el.replaceWith(document.createTextNode(el.textContent || '')); // niente trim
+                el.querySelectorAll('[data-ai-retranslate]').forEach(button => button.remove())
+
+                const content = el.querySelector('[data-ai-content]') as HTMLElement | null
+                el.replaceWith(document.createTextNode(content?.textContent || el.textContent || ''))
             }
-        );
+        )
 
         div.querySelectorAll('div, p, br').forEach(el => {
-        el.after(document.createTextNode('\n'))
+            el.after(document.createTextNode('\n'))
         })
 
-        return div.textContent || ''
+        return (div.textContent || '')
+            .split('\n')
+            .map(line => line.replace(/^[ \t]+/, ''))
+            .join('\n')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim()
     }
 
     function handleListEnter(
@@ -617,5 +706,6 @@ export function useNoteEditorUI(options: {
         handlePaste,
         handleEditorKeydown,
         stripAiMarkers,
+        retranslateAiBlock,
     }
 }

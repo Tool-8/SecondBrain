@@ -43,10 +43,10 @@ const handleAction = (action: ContextAction<void>) => {
 </script>
 
 <template>
-    <div class="flex flex-row gap-2 justify-end">
+    <div class="flex flex-row gap-2 justify-end py-1">
         <div class="relative self-start">
             <GeneralButton
-                label="Esporta in..."
+                label="Esporta"
                 @click="openExportMenu"
             >
                 <template #icon>
@@ -78,7 +78,7 @@ const handleAction = (action: ContextAction<void>) => {
         </div>
         <div class="self-start">
             <GeneralButton
-                label="Salva con nome"
+                label="Salva come.."
                 :disabled="isNew"
                 @click="saveTheNoteAs()"
             />

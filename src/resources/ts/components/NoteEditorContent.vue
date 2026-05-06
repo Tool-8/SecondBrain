@@ -14,6 +14,7 @@ const emit = defineEmits<{
     beforeinput: [event: InputEvent]
     paste: [event: ClipboardEvent]
     keydown: [event: KeyboardEvent]
+    click: [event: MouseEvent]
 }>()
 
 const editor = ref<HTMLElement | null>(null)
@@ -54,6 +55,7 @@ watch(
             @beforeinput="emit('beforeinput', $event as InputEvent)"
             @paste="emit('paste', $event as ClipboardEvent)"
             @keydown="emit('keydown', $event as KeyboardEvent)"
+            @click="emit('click', $event)"
         ></section>
 
         <section

@@ -17,13 +17,13 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <header class="grid grid-cols-3 px-6 py-7 border-b-1 border-gray-100 dark:border-neutral-800">
-        <div>
-            <h1 class="font-bold text-2xl max-w-60">
+    <header class="grid grid-cols-1 md:grid-cols-3 gap-2 px-6 py-7 border-b-1 border-gray-100 dark:border-neutral-800">
+        <div class="w-full">
+            <h1 class="font-bold text-2xl">
                 <input
                     :value="name"
                     placeholder="Inserisci nome.."
-                    class="focus-within:outline-2 focus-within:outline-blue-400"
+                    class="w-full truncate focus-within:outline-2 focus-within:outline-blue-400"
                     @input="emit('update:name', ($event.target as HTMLInputElement).value)"
                 />
             </h1>
@@ -41,7 +41,7 @@ const emit = defineEmits<{
         </div>
 
         <div
-            class="self-start flex items-center justify-between gap-2 px-1 py-1 rounded-xl bg-gray-100 border border-gray-50 shadow-xs font-medium dark:bg-neutral-800 dark:border-neutral-700"
+            class="w-full max-w-70 justify-self-center self-start flex items-center justify-between gap-2 px-1 py-1 rounded-xl bg-gray-100 border border-gray-50 shadow-xs font-medium dark:bg-neutral-800 dark:border-neutral-700"
         >
             <button
                 @click="emit('change-view', 'editor')"
@@ -68,6 +68,6 @@ const emit = defineEmits<{
             </button>
         </div>
 
-        <NoteEditorActions />
+        <NoteEditorActions class="w-full"/>
     </header>
 </template>

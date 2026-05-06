@@ -25,7 +25,7 @@ watch(
 
 <template>
     <aside
-        class="flex h-screen flex-col justify-between border-e border-gray-100 bg-white dark:border-neutral-800 dark:bg-neutral-900 sticky top-0 relative transition-all duration-300 ease-in-out"
+        class="absolute md:relative md:sticky top-0 left-0 flex h-screen flex-col justify-between border-e border-gray-100 bg-white dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300 ease-in-out z-99"
         :class="isOpen ? 'w-64' : 'w-0'"
     >
         <button

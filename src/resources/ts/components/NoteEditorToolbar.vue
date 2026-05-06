@@ -15,7 +15,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div class="flex px-6 py-1 border-b-1 border-gray-100 dark:border-neutral-800">
+    <div class="flex flex-wrap lg:flex-nowrap px-6 py-1 border-b-1 border-gray-100 dark:border-neutral-800">
         <div class="pr-4 flex gap-px border-r-1 border-gray-100 dark:border-neutral-800 font-jetbrains">
             <button
                 class="px-2 cursor-pointer rounded hover:bg-gray-100 dark:hover:bg-neutral-800"

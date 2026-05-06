@@ -47,6 +47,7 @@ const {
     handleBeforeInput,
     handlePaste,
     handleEditorKeydown,
+    retranslateAiBlock,
 } = useNoteEditorUI({
     noteContent,
     setEditorContent,
@@ -71,7 +72,17 @@ onBeforeRouteLeave(async (to, from, next) => {
     }
 });
 
+function handleEditorClick(event: MouseEvent) {
+    const target = event.target as HTMLElement
 
+    const button = target.closest('[data-ai-retranslate]') as HTMLElement | null
+    if (!button) return
+
+    const child = button.closest('[data-ai-child]') as HTMLElement | null
+    if (!child) return
+
+    retranslateAiBlock(child)
+}
 </script>
 
 <template>
@@ -112,6 +123,7 @@ onBeforeRouteLeave(async (to, from, next) => {
             @beforeinput="handleBeforeInput"
             @paste="handlePaste"
             @keydown="handleEditorKeydown"
+            @click="handleEditorClick"
         />
     </div>
 

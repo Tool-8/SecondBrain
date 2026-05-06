@@ -25,7 +25,15 @@ const {
 } = useNotes();
 const { RenamePromise, DeletePromise, ClonePromise } = useModals();
 
-onMounted(() => fetchNotes());
+const animateCards = ref(false)
+
+onMounted(async () => {
+    await fetchNotes()
+
+    requestAnimationFrame(() => {
+        animateCards.value = true
+    })
+})
 const noteCount = computed(() => filteredNotes.value.length);
 const searchQuery = ref('');
 
@@ -192,13 +200,20 @@ const importEvent = async (event: Event) => {
         <div v-else-if="error">{{ error }}</div>
         <ul v-else class="pt-3 space-y-4">
             <NoteArchiveCard
-                v-for="note in filteredNotes"
+                v-for="(note, index) in filteredNotes"
                 :key="note.id"
                 :id="note.id"
                 :name="note.name"
                 :last_edit="note.last_edit"
                 :creation="note.creation"
                 @contextmenu="noteMenu.open($event, note)"
+                class="archive-card-enter"
+                :style="{
+                    animationDelay: index < 10 ? `${index * 70}ms` : '0ms',
+                    animationName: index < 10 ? 'archive-card-slide-up' : 'none',
+                    opacity: index < 10 ? undefined : 1,
+                    transform: index < 10 ? undefined : 'none',
+                }"
             />
         </ul>
 

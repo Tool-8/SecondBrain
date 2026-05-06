@@ -36,7 +36,7 @@ const emit = defineEmits<{
         selectedText: string
         option: string
     }): void
-    (e: 'insert', mode: 'before' | 'after' | 'replace'): void
+    (e: 'insert', mode: 'before' | 'after' | 'replace' | 'bottom'): void
 }>()
 
 const panelTitle = computed(() => {
@@ -211,10 +211,11 @@ function runAction() {
 
             <div class="mt-auto">
                 <p class="pb-1 text-xs text-gray-500 dark:text-neutral-400">Inserisci testo</p>
-                <div class="flex gap-2">
+                <div class="grid grid-cols-3 gap-2">
                     <GeneralButton label="prima" :disabled="loading" @click="$emit('insert', 'before')" />
                     <GeneralButton label="dopo" :disabled="loading" @click="$emit('insert', 'after')" />
                     <GeneralButton label="sostituisci" :disabled="loading" @click="$emit('insert', 'replace')" />
+                    <GeneralButton label="in fondo alla pagina" class="col-span-3" :disabled="loading" @click="$emit('insert', 'bottom')" />
                 </div>
             </div>
         </div>
