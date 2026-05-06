@@ -4,13 +4,14 @@
     use Tests\TestCase;
     use App\Strategies\PdfExport;
     use Parsedown;
+    use App\Utilities\EditorContentFormatter;
 
     class PdfExportTest extends TestCase {
         private PdfExport $strategy;
 
         protected function setUp(): void {
             parent::setUp();
-            $this->strategy = new PdfExport(new Parsedown());
+            $this->strategy = new PdfExport(new Parsedown(), new EditorContentFormatter());
         }
 
         public function test_export_returns_content() : void {

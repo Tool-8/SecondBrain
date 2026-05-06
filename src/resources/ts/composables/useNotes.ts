@@ -160,8 +160,8 @@ function useNotes() {
     }
 
     const importNote = async (file: File) => {
-        const ext = file.name.split('.').pop()?.toLowerCase();
-        if (file.type !== 'text/markdown' && ext !== 'md' && ext !== 'markdown') {
+        const ext = file.name.split('.').pop() ?. toLowerCase();
+        if (file.type !== 'text/markdown' && file. type !== 'text/plain' && ext !== 'md' && ext !== 'markdown') {
             errorToast('Formato non supportato', '');
             return;
         }

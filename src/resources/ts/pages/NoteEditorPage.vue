@@ -82,9 +82,9 @@ onBeforeRouteLeave(async (to, from, next) => {
                 ? 'blur-xs pointer-events-none select-none overflow-hidden'
                 : ''
         "
-        class="flex flex-col"
+        class="flex flex-col min-h-full h-screen"
     >
-        <div class="bg-white dark:bg-neutral-900 sticky top-0">
+        <div class="bg-white dark:bg-neutral-900 sticky top-0 z-20">
             <NoteEditorHeader
                 v-model:name="noteName"
                 :is-dirty="isDirty"

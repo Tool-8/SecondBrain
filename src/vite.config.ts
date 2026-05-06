@@ -22,11 +22,22 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': '/var/www/html/resources/ts',
+      '@': new URL('./resources/ts', import.meta.url).pathname,
     },
   },
   test: {
-      globals: true,
-      environment: 'jsdom',
+    globals: true,
+    environment: 'jsdom',
+    coverage: {
+      provider: 'istanbul',
+      reporter: ['text', 'clover', 'lcov'],
+      reportsDirectory: 'build/logs/coverage',
+      include: ['resources/ts/**/*.{ts,vue}'],
+      exclude: [
+        'resources/ts/app.ts',
+        'resources/ts/**/*.d.ts',
+        'resources/ts/tests/**',
+      ],
+    },
   },
 });
