@@ -22,7 +22,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': '/var/www/html/resources/ts',
+      '@': new URL('./resources/ts', import.meta.url).pathname,
     },
   },
   test: {
