@@ -34,9 +34,9 @@ function useNotes() {
         }
     }
 
-    const updateNote = async (id: string): Promise<NoteWithContent | null> => {
+    const refreshNote = async (id: string): Promise<NoteWithContent | null> => {
         try {
-            const note = noteService.get(id);
+            const note = await noteService.get(id);
             successToast("Nota aggiornata con successo", "");
             return note;
         } catch (e) {
@@ -189,7 +189,7 @@ function useNotes() {
         exportNote,
         exportNoteFromRaw,
         getNote,
-        updateNote,
+        refreshNote,
         saveNote,
         importNote,
     }
