@@ -29,8 +29,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'clover'],
+      provider: 'istanbul',
+      reporter: ['text', 'clover', 'lcov'],
       reportsDirectory: 'build/logs/coverage',
       include: ['resources/ts/**/*.{ts,vue}'],
       exclude: [
