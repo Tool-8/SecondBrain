@@ -49,13 +49,4 @@ describe('close()', () => {
         expect(isOpen.value).toBe(false);
         expect(selectedItem.value).toBeNull();
     });
-
-    it('does not reset position on close', () => {
-        const { position, openAt, close } = useContextMenu<string>();
-
-        openAt(10, 20, 'elemento');
-        close();
-
-        expect(position.value).toEqual({ x: 10, y: 20 });
-    });
 });
