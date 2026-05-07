@@ -38,7 +38,7 @@ describe('useAi', () => {
         ai = useAi();
     });
 
-    describe('stato iniziale', () => {
+    describe('default state', () => {
         it('result è null', () => {
             expect(ai.result.value).toBeNull();
         });
@@ -52,7 +52,7 @@ describe('useAi', () => {
         });
     });
 
-    describe('execute — successo', () => {
+    describe('execute — success', () => {
         it('imposta loading a true durante l\'esecuzione', async () => {
             let loadingDuranteEsecuzione = false;
             mockSummarize.mockImplementation(() => {
@@ -65,51 +65,51 @@ describe('useAi', () => {
             expect(loadingDuranteEsecuzione).toBe(true);
         });
 
-        it('imposta result con il valore restituito', async () => {
+        it('expected result', async () => {
             mockSummarize.mockResolvedValue('risultato');
             await ai.summarize('contenuto');
             expect(ai.result.value).toBe('risultato');
         });
 
-        it('imposta loading a false dopo l\'esecuzione', async () => {
+        it('set loading to false after execution', async () => {
             mockSummarize.mockResolvedValue('risultato');
             await ai.summarize('contenuto');
             expect(ai.loading.value).toBe(false);
         });
 
-        it('error rimane null in caso di successo', async () => {
+        it('no error after successful execution', async () => {
             mockSummarize.mockResolvedValue('risultato');
             await ai.summarize('contenuto');
             expect(ai.error.value).toBeNull();
         });
     });
 
-    describe('execute — errore', () => {
-        it('imposta error con il messaggio dell\'eccezione', async () => {
+    describe('execute — error', () => {
+        it('set error with the exception message', async () => {
             mockSummarize.mockRejectedValue(new Error('Errore di rete'));
             await ai.summarize('contenuto');
             expect(ai.error.value).toBe('Errore di rete');
         });
 
-        it('imposta error con messaggio di default se l\'eccezione non ha messaggio', async () => {
+        it('set error with default message', async () => {
             mockSummarize.mockRejectedValue({});
             await ai.summarize('contenuto');
             expect(ai.error.value).toBe('Errore durante l\'elaborazione');
         });
 
-        it('result rimane null in caso di errore', async () => {
+        it('no result after error', async () => {
             mockSummarize.mockRejectedValue(new Error('Errore'));
             await ai.summarize('contenuto');
             expect(ai.result.value).toBeNull();
         });
 
-        it('loading è false dopo un errore', async () => {
+        it('set loading to false after error', async () => {
             mockSummarize.mockRejectedValue(new Error('Errore'));
             await ai.summarize('contenuto');
             expect(ai.loading.value).toBe(false);
         });
 
-        it('azzera error e result prima di ogni nuova esecuzione', async () => {
+        it('set error and result to null before each execution', async () => {
             mockSummarize.mockRejectedValueOnce(new Error('Primo errore'));
             await ai.summarize('contenuto');
 
@@ -122,13 +122,13 @@ describe('useAi', () => {
     });
 
     describe('translate', () => {
-        it('chiama aiService.translate con lang di default en', async () => {
+        it('calls aiService.translate with default language en', async () => {
             mockTranslate.mockResolvedValue('tradotto');
             await ai.translate('contenuto');
             expect(mockTranslate).toHaveBeenCalledWith('contenuto', 'en');
         });
 
-        it('chiama aiService.translate con la lang specificata', async () => {
+        it('calls aiService.translate with the specified language', async () => {
             mockTranslate.mockResolvedValue('tradotto');
             await ai.translate('contenuto', 'it');
             expect(mockTranslate).toHaveBeenCalledWith('contenuto', 'it');
@@ -136,7 +136,7 @@ describe('useAi', () => {
     });
 
     describe('summarize', () => {
-        it('chiama aiService.summarize con il contenuto', async () => {
+        it('calls aiService.summarize with content', async () => {
             mockSummarize.mockResolvedValue('riassunto');
             await ai.summarize('contenuto');
             expect(mockSummarize).toHaveBeenCalledWith('contenuto');
@@ -144,7 +144,7 @@ describe('useAi', () => {
     });
 
     describe('rewrite', () => {
-        it('chiama aiService.rewrite con contenuto e style', async () => {
+        it('calls aiService.rewrite with content and style', async () => {
             mockRewrite.mockResolvedValue('riscritto');
             await ai.rewrite('contenuto', ['grammar']);
             expect(mockRewrite).toHaveBeenCalledWith('contenuto', ['grammar']);
@@ -152,7 +152,7 @@ describe('useAi', () => {
     });
 
     describe('distantWriting', () => {
-        it('chiama aiService.distantWriting con il contenuto', async () => {
+        it('calls aiService.distantWriting with content', async () => {
             mockDistantWriting.mockResolvedValue('risultato');
             await ai.distantWriting('contenuto');
             expect(mockDistantWriting).toHaveBeenCalledWith('contenuto');
@@ -160,7 +160,7 @@ describe('useAi', () => {
     });
 
     describe('bluehat', () => {
-        it('chiama aiService.bluehat con il contenuto', async () => {
+        it('calls aiService.bluehat with content', async () => {
             mockBluehat.mockResolvedValue('risultato');
             await ai.bluehat('contenuto');
             expect(mockBluehat).toHaveBeenCalledWith('contenuto');
@@ -168,7 +168,7 @@ describe('useAi', () => {
     });
 
     describe('blackhat', () => {
-        it('chiama aiService.blackhat con il contenuto', async () => {
+        it('calls aiService.blackhat with content', async () => {
             mockBlackhat.mockResolvedValue('risultato');
             await ai.blackhat('contenuto');
             expect(mockBlackhat).toHaveBeenCalledWith('contenuto');
@@ -176,7 +176,7 @@ describe('useAi', () => {
     });
 
     describe('redhat', () => {
-        it('chiama aiService.redhat con il contenuto', async () => {
+        it('calls aiService.redhat with content', async () => {
             mockRedhat.mockResolvedValue('risultato');
             await ai.redhat('contenuto');
             expect(mockRedhat).toHaveBeenCalledWith('contenuto');
@@ -184,7 +184,7 @@ describe('useAi', () => {
     });
 
     describe('yellowhat', () => {
-        it('chiama aiService.blackhat con il contenuto', async () => {
+        it('calls aiService.yellowhat with content', async () => {
             mockYellowhat.mockResolvedValue('risultato');
             await ai.yellowhat('contenuto');
             expect(mockYellowhat).toHaveBeenCalledWith('contenuto');
@@ -192,7 +192,7 @@ describe('useAi', () => {
     });
 
     describe('greenhat', () => {
-        it('chiama aiService.greenhat con il contenuto', async () => {
+        it('calls aiService.greenhat with content', async () => {
             mockGreenhat.mockResolvedValue('risultato');
             await ai.greenhat('contenuto');
             expect(mockGreenhat).toHaveBeenCalledWith('contenuto');
@@ -200,7 +200,7 @@ describe('useAi', () => {
     });
 
     describe('whitehat', () => {
-        it('chiama aiService.whitehat con il contenuto', async () => {
+        it('calls aiService.whitehat with content', async () => {
             mockWhitehat.mockResolvedValue('risultato');
             await ai.whitehat('contenuto');
             expect(mockWhitehat).toHaveBeenCalledWith('contenuto');
