@@ -200,8 +200,6 @@ export function useNoteEditorUI(options: {
         option: string
     }) {
 
-        aiResult.value = 'LOREM IPSUM'; return; // RIMUOVII!!
-
         switch (payload.action) {
             case 'summarize':
                 await summarize(payload.selectedText);
@@ -557,16 +555,13 @@ export function useNoteEditorUI(options: {
 
         if (!content) return
 
-        content.textContent = 'Testo ritradotto!' // test temporaneo
-        /*
         await translate(sourceText, lang)
         if (error.value) {
             warningToast('Errore AI', error.value)
             return
         }
         
-
-        content.textContent = result.value ?? ''*/
+        content.textContent = result.value ?? ''
         delete child.dataset.aiDirty
         button?.classList.add('hidden')
 
