@@ -1,2 +1,135 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+    font-family: 'Manrope';
+    src: url('../fonts/Manrope-Variable.ttf') format('truetype');
+    font-weight: 200 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'JetBrains';
+    src: url('../fonts/JetBrainsMono-VariableFont_wght.ttf') format('truetype');
+    font-weight: 200 800;
+    font-style: normal;
+}
+
+@theme {
+  --font-sans: "Manrope", sans-serif;
+  --font-jetbrains: "JetBrains", sans-serif;
+  --animate-slide-in: slide-in 0.3s ease-out;
+  --animate-slide-out: slide-out 0.3s ease-in;
+}
+
+*[debug], *[debug] * {
+    border: 1px solid greenyellow;
+}
+
+.disable-transitions *,
+.disable-transitions *::before,
+.disable-transitions *::after {
+    transition: none !important;
+}
+
+#editor [data-ai-parent],
+#editor [data-ai-child] {
+    display: block;
+    border-radius: 4px;
+    padding: 4px 6px;
+    margin: 4px 0;
+}
+
+#editor .normal-edit-zone {
+    display: block;
+    min-height: 1.5em;
+    margin: 4px 0;
+}
+
+#editor [data-ai-parent],
+#editor [data-ai-child] {
+    position: relative;
+    border-radius: 4px;
+    padding: 1px 2px;
+    padding-top: 14px;
+}
+
+#editor [data-ai-parent]::before,
+#editor [data-ai-child]::before {
+    content: attr(data-ai-label);
+    font-size: 10px;
+    margin-right: 4px;
+    opacity: .7;
+    font-family: monospace;
+    position: absolute;
+    top: 0;
+    left: 4px;
+}
+
+#editor .ai-retranslate-btn {
+    font-size: 10px;
+    margin-right: 4px;
+    opacity: .7;
+    font-family: monospace;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+#editor .ai-retranslate-btn:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+#editor [data-ai-parent] {
+    background: rgba(251, 191, 36, .25);
+}
+
+#editor [data-ai-child] {
+    background: rgba(59, 130, 246, .18);
+}
+
+.archive-card-enter {
+    opacity: 0;
+    transform: translateY(24px);
+    animation-duration: 350ms;
+    animation-fill-mode: forwards;
+    animation-timing-function: ease-out;
+}
+
+@keyframes archive-card-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slide-in {
+    from {
+        transform: translateY(50%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-out {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(50%);
+        opacity: 0;
+    }
+}

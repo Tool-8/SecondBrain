@@ -1,0 +1,31 @@
+import { createTemplatePromise } from '@vueuse/core';
+
+const RenamePromise = createTemplatePromise<string | null, [string]>({
+    singleton: true,
+});
+
+const DeletePromise = createTemplatePromise<boolean | null>({
+    singleton: true,
+});
+
+const ClonePromise = createTemplatePromise<string | null, [string]>({
+    singleton: true,
+});
+
+const SavePromise = createTemplatePromise<"overwrite" | "save as" | "update" | null>({
+    singleton: true,
+});
+
+const DiscardPromise = createTemplatePromise<"cancel" | "discard" | "save" | null>({
+    singleton: true,
+});
+
+export function useModals() {
+    return {
+        RenamePromise,
+        DeletePromise,
+        ClonePromise,
+        SavePromise,
+        DiscardPromise
+    };
+}
