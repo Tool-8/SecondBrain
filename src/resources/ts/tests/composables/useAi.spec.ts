@@ -39,21 +39,21 @@ describe('useAi', () => {
     });
 
     describe('default state', () => {
-        it('result è null', () => {
+        it('result is null', () => {
             expect(ai.result.value).toBeNull();
         });
 
-        it('loading è false', () => {
+        it('loading is false', () => {
             expect(ai.loading.value).toBe(false);
         });
 
-        it('error è null', () => {
+        it('error is null', () => {
             expect(ai.error.value).toBeNull();
         });
     });
 
     describe('execute — success', () => {
-        it('imposta loading a true durante l\'esecuzione', async () => {
+        it('sets loading to true during execution', async () => {
             let loadingDuranteEsecuzione = false;
             mockSummarize.mockImplementation(() => {
                 loadingDuranteEsecuzione = ai.loading.value;
