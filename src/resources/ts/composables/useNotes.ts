@@ -60,9 +60,6 @@ function useNotes() {
         }
         try {
             const backendNote = await noteService.get(note.id);
-            if (!backendNote) {
-                return null;
-            }
             if (backendNote.last_edit !== note.last_edit && !overwrite) {
                 throw new NoteNotUpdatedError(note);
             }
@@ -80,7 +77,7 @@ function useNotes() {
         } catch (e) {
             if (e instanceof NoteNotUpdatedError) throw e;
             errorToast(
-                "Errore durante l'aggiornamento della nota",
+                "Errore durante il salvataggio della nota",
                 (e as Error).message
             );
             return null;
@@ -115,7 +112,10 @@ function useNotes() {
             successToast("Nota salvata con successo", "");
             return note;
         } catch (e) {
-            errorToast("Errore durante la creazione della nota", (e as Error).message);
+            errorToast(
+                'Errore durante il salvataggio della nota',
+                (e as Error).message
+            );
             return null;
         }
     }
@@ -148,6 +148,10 @@ function useNotes() {
     const exportNoteFromRaw = async (name: string, content: string, format: 'pdf' | 'md' | 'html') => {
         if (!content) {
             warningToast('Nessun contenuto da esportare', '');
+            return;
+        }
+        if (format !== 'pdf' && format !== 'md' && format !== 'html') {
+            errorToast('Formato non supportato', '');
             return;
         }
 
