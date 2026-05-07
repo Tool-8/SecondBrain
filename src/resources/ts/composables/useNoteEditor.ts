@@ -22,7 +22,7 @@ function normalizeEditorHtml(html: string = '') {
 
 function useNoteEditorState() {
     const { errorToast, warningToast, successToast } = useToast();
-    const { getNote, saveNote, storeNote, exportNoteFromRaw } = useNotes();
+    const { getNote, saveNote, storeNote, refreshNote, exportNoteFromRaw } = useNotes();
     const route = useRoute();
 
     const noteContent = ref('');
@@ -85,7 +85,7 @@ function useNoteEditorState() {
     };
 
     const update = async (id: string) => {
-        const updatedNote = await getNote(id);
+        const updatedNote = await refreshNote(id);
         if (!updatedNote) return;
         (originalNote.value as Note) = updatedNote;
         noteContent.value = updatedNote.content;
