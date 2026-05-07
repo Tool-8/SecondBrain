@@ -47,7 +47,7 @@ describe('noteService', () => {
     });
 
     describe('getAll', () => {
-        it('chiama GET /notes e restituisce le note mappate', async () => {
+        it('calls GET /notes and returns the mapped notes', async () => {
             mockGet.mockResolvedValue({ data: [rawNote] });
 
             const result = await noteService.getAll();
@@ -57,7 +57,7 @@ describe('noteService', () => {
             expect(result[0]).toMatchObject(mappedNote);
         });
 
-        it('restituisce un array vuoto se non ci sono note', async () => {
+        it('returns an empty array if there are no notes', async () => {
             mockGet.mockResolvedValue({ data: [] });
 
             const result = await noteService.getAll();
@@ -65,7 +65,7 @@ describe('noteService', () => {
             expect(result).toEqual([]);
         });
 
-        it('propaga l\'errore se la chiamata fallisce', async () => {
+        it('propagates the error if the call fails', async () => {
             mockGet.mockRejectedValue(new Error('Network error'));
 
             await expect(noteService.getAll()).rejects.toThrow('Network error');
@@ -73,7 +73,7 @@ describe('noteService', () => {
     });
     
     describe('get', () => {
-        it('chiama GET /notes/:id e restituisce la nota con contenuto', async () => {
+        it('calls GET /notes/:id and returns the note with content', async () => {
             mockGet.mockResolvedValue({ data: rawNote });
 
             const result = await noteService.get('1');
@@ -82,7 +82,7 @@ describe('noteService', () => {
             expect(result).toMatchObject(mappedNoteWithContent);
         });
 
-        it('propaga l\'errore se la chiamata fallisce', async () => {
+        it('propagates the error if the call fails', async () => {
             mockGet.mockRejectedValue(new Error('Not found'));
 
             await expect(noteService.get('1')).rejects.toThrow('Not found');
@@ -90,7 +90,7 @@ describe('noteService', () => {
     });
 
     describe('rename', () => {
-        it('chiama PUT /notes/:id con il nuovo nome e restituisce la nota mappata', async () => {
+        it('calls PUT /notes/:id with the new name and returns the mapped note', async () => {
             mockPut.mockResolvedValue({ data: { ...rawNote, title: 'Nuovo titolo' } });
 
             const result = await noteService.rename('1', 'Nuovo titolo');
@@ -99,7 +99,7 @@ describe('noteService', () => {
             expect(result.name).toBe('Nuovo titolo');
         });
 
-        it('propaga l\'errore se la chiamata fallisce', async () => {
+        it('propagates the error if the call fails', async () => {
             mockPut.mockRejectedValue(new Error('Errore'));
 
             await expect(noteService.rename('1', 'Nuovo titolo')).rejects.toThrow('Errore');
@@ -107,7 +107,7 @@ describe('noteService', () => {
     });
 
     describe('remove', () => {
-        it('chiama DELETE /notes/:id', async () => {
+        it('calls DELETE /notes/:id', async () => {
             mockDelete.mockResolvedValue({});
 
             await noteService.remove('1');
@@ -115,7 +115,7 @@ describe('noteService', () => {
             expect(mockDelete).toHaveBeenCalledWith('/notes/1');
         });
 
-        it('propaga l\'errore se la chiamata fallisce', async () => {
+        it('propagates the error if the call fails', async () => {
             mockDelete.mockRejectedValue(new Error('Errore'));
 
             await expect(noteService.remove('1')).rejects.toThrow('Errore');
@@ -123,7 +123,7 @@ describe('noteService', () => {
     });
 
     describe('store', () => {
-        it('chiama POST /notes con nome e contenuto e restituisce la nota mappata', async () => {
+        it('calls POST /notes with name and content and returns the mapped note', async () => {
             mockPost.mockResolvedValue({ data: rawNote });
 
             const result = await noteService.store('Titolo nota', '# Contenuto');
@@ -135,7 +135,7 @@ describe('noteService', () => {
             expect(result).toMatchObject(mappedNote);
         });
 
-        it('propaga l\'errore se la chiamata fallisce', async () => {
+        it('propagates the error if the call fails', async () => {
             mockPost.mockRejectedValue(new Error('Errore'));
 
             await expect(noteService.store('Titolo', 'Contenuto')).rejects.toThrow('Errore');
@@ -143,7 +143,7 @@ describe('noteService', () => {
     });
 
     describe('update', () => {
-        it('chiama PUT /notes/:id con titolo e contenuto e restituisce la nota con contenuto', async () => {
+        it('calls PUT /notes/:id with title and content and returns the map with content', async () => {
             mockPut.mockResolvedValue({ data: rawNote });
 
             const result = await noteService.update('1', 'Titolo nota', '# Contenuto');
@@ -155,7 +155,7 @@ describe('noteService', () => {
             expect(result).toMatchObject(mappedNoteWithContent);
         });
 
-        it('propaga l\'errore se la chiamata fallisce', async () => {
+        it('propagates the error if the call fails', async () => {
             mockPut.mockRejectedValue(new Error('Errore'));
 
             await expect(noteService.update('1', 'Titolo', 'Contenuto')).rejects.toThrow('Errore');
@@ -176,7 +176,7 @@ describe('noteService', () => {
             vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
         });
 
-        it('chiama GET /notes/export/:id con il formato corretto', async () => {
+        it('calls GET /notes/export/:id with the correct format', async () => {
             mockGet.mockResolvedValue({
                 data:    new Blob(),
                 headers: { 'content-disposition': 'attachment; filename="nota.pdf"' },
@@ -190,7 +190,7 @@ describe('noteService', () => {
             });
         });
 
-        it('usa il filename dall\'header content-disposition', async () => {
+        it('uses the filename from the content-disposition header', async () => {
             const mockLink = { href: '', setAttribute: vi.fn(), click: vi.fn() };
             vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
 
@@ -204,7 +204,7 @@ describe('noteService', () => {
             expect(mockLink.setAttribute).toHaveBeenCalledWith('download', 'mia-nota.pdf');
         });
 
-        it('usa il filename di fallback se content-disposition è assente', async () => {
+        it('uses the fallback filename if content-disposition is missing', async () => {
             const mockLink = { href: '', setAttribute: vi.fn(), click: vi.fn() };
             vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
 
@@ -228,7 +228,7 @@ describe('noteService', () => {
             vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
         });
 
-        it('chiama POST /notes/export con nome, contenuto e formato', async () => {
+        it('calls POST /notes/export with name, content and format', async () => {
             mockPost.mockResolvedValue({
                 data:    new Blob(),
                 headers: { 'content-disposition': 'attachment; filename="nota.html"' },
@@ -245,7 +245,7 @@ describe('noteService', () => {
     });
 
     describe('import', () => {
-        it('chiama POST /notes/import con il FormData e restituisce la nota mappata', async () => {
+        it('calss POST /notes/import with FormData and returns the mapped note', async () => {
             mockPost.mockResolvedValue({ data: rawNote });
 
             const formData = new FormData();
@@ -257,7 +257,7 @@ describe('noteService', () => {
             expect(result).toMatchObject(mappedNote);
         });
 
-        it('propaga l\'errore se la chiamata fallisce', async () => {
+        it('propagates the error if the call fails', async () => {
             mockPost.mockRejectedValue(new Error('Errore import'));
 
             await expect(noteService.import(new FormData())).rejects.toThrow('Errore import');
