@@ -93,7 +93,7 @@ function handleEditorClick(event: MouseEvent) {
                 ? 'blur-xs pointer-events-none select-none overflow-hidden'
                 : ''
         "
-        class="flex flex-col min-h-full h-screen"
+        class="flex flex-col items-stretch"
     >
         <div class="bg-white dark:bg-neutral-900 sticky top-0 z-20">
             <NoteEditorHeader
