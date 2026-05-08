@@ -326,6 +326,7 @@ export function useNoteEditorUI(options: {
         hidden?: boolean
         action?: Exclude<AiAction, null>
         lang?: LanguageMode
+        sourceChildId?: string
     }) {
 
         const attr =
@@ -336,6 +337,7 @@ export function useNoteEditorUI(options: {
                     data-ai-label="AI #${options.aiIndex} output"
                     data-ai-action="${options.action ?? ''}"
                     data-ai-lang="${options.lang ?? ''}"
+                    data-ai-source-child="${options.sourceChildId ?? ''}"
                 `
 
         const retranslateButton =
@@ -387,6 +389,9 @@ export function useNoteEditorUI(options: {
         const range = selectedRange.value.cloneRange()
         const selected = range.toString()
 
+        const aiBlock = getAiBlockFromRange(range)
+        const sourceChildId = aiBlock?.dataset.aiChild
+
         const parentHtml = createAiBlockHtml({
             type: 'parent',
             groupId,
@@ -402,6 +407,7 @@ export function useNoteEditorUI(options: {
             text: aiResult.value,
             action: aiAction.value ?? undefined,
             lang: aiAction.value === 'translate' ? languageMode.value : undefined,
+            sourceChildId: aiAction.value === 'translate' ? sourceChildId : undefined,
         })
 
         const exitHtml = createExitBlockHtml()
@@ -419,8 +425,6 @@ export function useNoteEditorUI(options: {
         if (mode === 'after') {
             html = parentHtml + childHtml + exitHtml
         }
-
-        const aiBlock = getAiBlockFromRange(range)
 
         if (aiBlock && mode === 'replace') {
             const selection = window.getSelection()
@@ -521,16 +525,31 @@ export function useNoteEditorUI(options: {
         }
 
         if (childMarker) {
-        const id = childMarker.dataset.aiChild
+            const id = childMarker.dataset.aiChild
 
-        if (id && !warnedChildren.has(id)) {
-            warnedChildren.add(id)
+            if (id) {
+                const translatedChildren = editorRef.value?.querySelectorAll(
+                    `[data-ai-source-child="${id}"][data-ai-action="translate"]`
+                )
 
-            warningToast(
-            'Attenzione',
-            'Stai modificando testo generato da AI.'
-            )
-        }
+                translatedChildren?.forEach(child => {
+                    const translatedChild = child as HTMLElement
+
+                    translatedChild.dataset.aiDirty = 'true'
+
+                    const button = translatedChild.querySelector('[data-ai-retranslate]') as HTMLElement | null
+                    button?.classList.remove('hidden')
+                })
+            }
+
+            if (id && !warnedChildren.has(id)) {
+                warnedChildren.add(id)
+
+                warningToast(
+                    'Attenzione',
+                    'Stai modificando testo generato da AI.'
+                )
+            }
         }
     }
 
@@ -658,6 +677,13 @@ export function useNoteEditorUI(options: {
 
         const aiBlock = el.closest('[data-ai-parent], [data-ai-child]') as HTMLElement | null
         if (aiBlock) {
+            if (event.shiftKey) {
+                event.preventDefault()
+                insertLineBreak()
+                handleEditorInput()
+                return
+            }
+
             event.preventDefault()
             moveOutsideAiBlock()
             return
@@ -671,6 +697,26 @@ export function useNoteEditorUI(options: {
             event.preventDefault()
             handleEditorInput()
         }
+    }
+
+    function insertLineBreak() {
+        const selection = window.getSelection()
+        if (!selection || selection.rangeCount === 0) return
+
+        const range = selection.getRangeAt(0)
+
+        const br = document.createElement('br')
+        const textNode = document.createTextNode('\u200B') // zero width space
+
+        range.deleteContents()
+        range.insertNode(textNode)
+        range.insertNode(br)
+
+        range.setStartAfter(textNode)
+        range.collapse(true)
+
+        selection.removeAllRanges()
+        selection.addRange(range)
     }
 
     return {
