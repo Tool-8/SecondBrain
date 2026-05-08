@@ -556,17 +556,32 @@ export function useNoteEditorUI(options: {
     async function retranslateAiBlock(child: HTMLElement) {
         const groupId = child.dataset.aiChild
         const lang = child.dataset.aiLang as AiLang | undefined
+        const sourceChildId = child.dataset.aiSourceChild
 
         if (!groupId || !lang) return
 
-        const parent = editorRef.value?.querySelector(
-            `[data-ai-parent="${groupId}"]`
-        ) as HTMLElement | null
+        let sourceText = ''
 
-        if (!parent) return
+        if (sourceChildId) {
+            const sourceChild = editorRef.value?.querySelector(
+                `[data-ai-child="${sourceChildId}"]`
+            ) as HTMLElement | null
 
-        const parentContent = parent.querySelector('[data-ai-content]') as HTMLElement | null
-        const sourceText = (parentContent?.innerText ?? parent.innerText).trim()
+            if (!sourceChild) return
+
+            const content = sourceChild.querySelector('[data-ai-content]') as HTMLElement | null
+            sourceText = (content?.innerText ?? sourceChild.innerText).trim()
+        } else {
+            const parent = editorRef.value?.querySelector(
+                `[data-ai-parent="${groupId}"]`
+            ) as HTMLElement | null
+
+            if (!parent) return
+
+            const parentContent = parent.querySelector('[data-ai-content]') as HTMLElement | null
+            sourceText = (parentContent?.innerText ?? parent.innerText).trim()
+        }
+
         if (!sourceText) return
 
         const content = child.querySelector('[data-ai-content]') as HTMLElement | null
@@ -579,7 +594,7 @@ export function useNoteEditorUI(options: {
             warningToast('Errore AI', error.value)
             return
         }
-        
+
         content.textContent = result.value ?? ''
         delete child.dataset.aiDirty
         button?.classList.add('hidden')
