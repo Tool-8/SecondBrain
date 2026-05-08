@@ -34,7 +34,7 @@ function useNoteEditorState() {
 
     const isNew = computed(() => !route.params.id);
 
-    const { RenamePromise, SavePromise } = useModals();
+    const { RenamePromise, SaveAsPromise, SavePromise } = useModals();
 
     watch([noteContent, noteName], ([newContent, newName]) => {
         if (!originalNote.value) {
@@ -76,7 +76,7 @@ function useNoteEditorState() {
     };
 
     const saveAs = async () => {
-        const newName = await RenamePromise.start(noteName.value);
+        const newName = await SaveAsPromise.start(noteName.value + ' - Copia');
         if (!newName) return;
         const newNote = await storeNote(newName, noteContent.value);
         if (!newNote) return;

@@ -2,7 +2,7 @@
 import BaseModal from '@/components/layout/BaseModal.vue';
 import { useModals } from '@/composables/useModals';
 
-const { RenamePromise, DeletePromise, ClonePromise, SavePromise, DiscardPromise } = useModals();
+const { RenamePromise, DeletePromise, ClonePromise, SavePromise, DiscardPromise, SaveAsPromise } = useModals();
 </script>
 
 <template>
@@ -39,6 +39,40 @@ const { RenamePromise, DeletePromise, ClonePromise, SavePromise, DiscardPromise 
             </template>
         </BaseModal>
     </RenamePromise>
+
+    <!-- Modale per il salva come -->
+    <SaveAsPromise v-slot="{ resolve, args }">
+        <BaseModal title="Salva come...">
+            <template #body>
+                <label for="Name">
+                    <span
+                        class="text-sm font-medium text-gray-700 dark:text-gray-200"
+                    >
+                        Nome della copia
+                    </span>
+                    <input
+                        type="text"
+                        v-model="args[0]"
+                        class="mt-1 p-2 w-full rounded border border-gray-200 pe-10 shadow-xs sm:text-sm focus:outline-blue-400 focus:outline-1 dark:border-neutral-700 dark:bg-neutral-800"
+                    />
+                </label>
+            </template>
+            <template #footer>
+                <button
+                    @click="resolve(null)"
+                    class="cursor-pointer min-w-22 rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-neutral-800 dark:text-gray-200 dark:hover:bg-neutral-700"
+                >
+                    Annulla
+                </button>
+                <button
+                    @click="resolve(args[0])"
+                    class="cursor-pointer min-w-22 rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+                >
+                    OK
+                </button>
+            </template>
+        </BaseModal>
+    </SaveAsPromise>
 
     <!-- Modale per la conferma dell'elimina -->
     <DeletePromise v-slot="{ resolve }">

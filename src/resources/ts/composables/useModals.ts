@@ -20,12 +20,17 @@ const DiscardPromise = createTemplatePromise<"cancel" | "discard" | "save" | nul
     singleton: true,
 });
 
+const SaveAsPromise = createTemplatePromise<string | null, [string]>({
+    singleton: true,
+});
+
 export function useModals() {
     return {
         RenamePromise,
         DeletePromise,
         ClonePromise,
         SavePromise,
-        DiscardPromise
+        DiscardPromise,
+        SaveAsPromise
     };
 }
