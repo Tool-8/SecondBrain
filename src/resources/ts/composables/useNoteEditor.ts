@@ -76,7 +76,7 @@ function useNoteEditorState() {
     };
 
     const saveAs = async () => {
-        const newName = await SaveAsPromise.start(noteName.value);
+        const newName = await SaveAsPromise.start(noteName.value + ' - Copia');
         if (!newName) return;
         const newNote = await storeNote(newName, noteContent.value);
         if (!newNote) return;
