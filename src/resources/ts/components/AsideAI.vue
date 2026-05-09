@@ -60,15 +60,15 @@ const actionLabel = computed(() => {
 function toggleStyle(style: RewriteStyle) {
     const current = [...props.rewriteStyle];
     const index = current.indexOf(style);
-
     if (index > -1) {
         if (current.length > 1) {
             current.splice(index, 1);
+            emit('update:rewriteStyle', current);
         }
     } else {
         current.push(style);
+        emit('update:rewriteStyle', current);
     }
-    emit('update:rewriteStyle', current);
 }
 
 function copyToClipboard() {
