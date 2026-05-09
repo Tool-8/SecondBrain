@@ -191,45 +191,45 @@ describe('AsideAI', () => {
 
         it('emits run with summarizeMode for summarize', async () => {
             const wrapper = mount(AsideAI, {
-                props: { ...defaultProps, action: 'summarize'},
+                props: { ...defaultProps, selectedText: 'Testo da riassumere', action: 'summarize'},
             });
             const actionButton = wrapper.findAllComponents({ name: 'GeneralButton' })[0];
             await actionButton.trigger('click');
             expect(wrapper.emitted('run')?.[0]).toEqual([{
-                action: 'summarize', selectedText: '', option: '',
+                action: 'summarize', selectedText: 'Testo da riassumere', option: '',
             }]);
         });
 
         it('emits run with option hatMode for hats', async () => {
             const wrapper = mount(AsideAI, {
-                props: { ...defaultProps, action: 'hats', hatMode: 'red' },
+                props: { ...defaultProps, action: 'hats', selectedText: 'Testo da criticare',  hatMode: 'red' },
             });
             const actionButton = wrapper.findAllComponents({ name: 'GeneralButton' })[0];
             await actionButton.trigger('click');
             expect(wrapper.emitted('run')?.[0]).toEqual([{
-                action: 'hats', selectedText: '', option: 'red',
+                action: 'hats', selectedText: 'Testo da criticare', option: 'red',
             }]);
         });
 
         it('emits run with option languageMode for translate', async () => {
             const wrapper = mount(AsideAI, {
-                props: { ...defaultProps, action: 'translate', languageMode: 'fr' },
+                props: { ...defaultProps, action: 'translate', selectedText: 'Testo da tradurre', languageMode: 'fr' },
             });
             const actionButton = wrapper.findAllComponents({ name: 'GeneralButton' })[0];
             await actionButton.trigger('click');
             expect(wrapper.emitted('run')?.[0]).toEqual([{
-                action: 'translate', selectedText: '', option: 'fr',
+                action: 'translate', selectedText: 'Testo da tradurre', option: 'fr',
             }]);
         });
 
         it('emits run with style for rewrite', async () => {
             const wrapper = mount(AsideAI, {
-                props: { ...defaultProps, action: 'rewrite', rewriteStyle: ['grammar', 'lexicon'] },
+                props: { ...defaultProps, action: 'rewrite', selectedText: 'Testo da riscrivere', rewriteStyle: ['grammar', 'lexicon'] },
             });
             const actionButton = wrapper.findAllComponents({ name: 'GeneralButton' })[0];
             await actionButton.trigger('click');
             expect(wrapper.emitted('run')?.[0]).toEqual([{
-                action: 'rewrite', selectedText: '', option: 'grammar,lexicon',
+                action: 'rewrite', selectedText: 'Testo da riscrivere', option: 'grammar,lexicon',
             }]);
         });
     });
