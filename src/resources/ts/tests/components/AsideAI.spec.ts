@@ -30,7 +30,6 @@ const defaultProps = {
     selectedText:  '',
     result:        '',
     loading:       false,
-    summarizeMode: 'medium' as 'short' | 'medium' | 'long',
     hatMode:       'white' as 'white' | 'red' | 'black' | 'yellow' | 'green' | 'blue',
     languageMode:  'en' as 'it' | 'en' | 'fr' | 'de' | 'es',
     rewriteStyle:  ['grammar'] as ('grammar' | 'extension' | 'lexicon' | 'stylistic')[],
@@ -96,11 +95,6 @@ describe('AsideAI', () => {
     });
 
     describe('actions', () => {
-        it('shows select summarize when action is summarize', () => {
-            const wrapper = mount(AsideAI, { props: { ...defaultProps, action: 'summarize' } });
-            expect(wrapper.find('select').exists()).toBe(true);
-            expect(wrapper.find('option[value="short"]').exists()).toBe(true);
-        });
 
         it('shows select hats when action is hats', () => {
             const wrapper = mount(AsideAI, { props: { ...defaultProps, action: 'hats' } });
@@ -112,10 +106,16 @@ describe('AsideAI', () => {
             expect(wrapper.find('option[value="it"]').exists()).toBe(true);
         });
 
-        it('shows buttons rewrite when action is rewrite', () => {
+        it('shows all rewrite style buttons when action is rewrite', () => {
             const wrapper = mount(AsideAI, { props: { ...defaultProps, action: 'rewrite' } });
-            expect(wrapper.text()).toContain('grammar');
-            expect(wrapper.text()).toContain('stylistic');
+            const buttons = wrapper.findAll('button.rounded-full');
+            const labels = buttons.map(b => b.text());
+
+            expect(labels).toContain('grammar');
+            expect(labels).toContain('extension');
+            expect(labels).toContain('lexicon');
+            expect(labels).toContain('stylistic');
+            expect(buttons).toHaveLength(4);
         });
 
         it('does not show copy button if result is empty', () => {
@@ -133,13 +133,6 @@ describe('AsideAI', () => {
         const wrapper = mount(AsideAI, { props: defaultProps });
         await wrapper.find('button').trigger('click');
         expect(wrapper.emitted('close')).toBeTruthy();
-    });
-
-    it('emits update:summarizeMode on select change', async () => {
-        const wrapper = mount(AsideAI, { props: { ...defaultProps, action: 'summarize' } });
-        const select = wrapper.find('select');
-        await select.setValue('long');
-        expect(wrapper.emitted('update:summarizeMode')?.[0]).toEqual(['long']);
     });
 
     it('emits update:hatMode on select change', async () => {
@@ -198,12 +191,12 @@ describe('AsideAI', () => {
 
         it('emits run with summarizeMode for summarize', async () => {
             const wrapper = mount(AsideAI, {
-                props: { ...defaultProps, action: 'summarize', summarizeMode: 'long' },
+                props: { ...defaultProps, action: 'summarize'},
             });
             const actionButton = wrapper.findAllComponents({ name: 'GeneralButton' })[0];
             await actionButton.trigger('click');
             expect(wrapper.emitted('run')?.[0]).toEqual([{
-                action: 'summarize', selectedText: '', option: 'long',
+                action: 'summarize', selectedText: '', option: '',
             }]);
         });
 
