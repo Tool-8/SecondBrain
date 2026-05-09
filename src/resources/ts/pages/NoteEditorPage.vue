@@ -27,7 +27,6 @@ const {
     selectedText,
     aiResult,
     loading,
-    summarizeMode,
     hatMode,
     languageMode,
     rewriteStyle,
@@ -133,12 +132,11 @@ function handleEditorClick(event: MouseEvent) {
         :selected-text="selectedText"
         :result="aiResult"
         :loading="loading"
-        :summarize-mode="summarizeMode"
         :hat-mode="hatMode"
         :rewrite-style="rewriteStyle"
         :language-mode="languageMode"
         @close="closeAiPanel"
-        @update:summarizeMode="summarizeMode = $event"
+
         @update:hatMode="hatMode = $event"
         @update:languageMode="languageMode = $event"
         @update:rewriteStyle="rewriteStyle = $event"

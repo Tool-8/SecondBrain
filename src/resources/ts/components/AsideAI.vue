@@ -6,7 +6,6 @@ import { useToast } from '@/composables/useToast'
 const { successToast, errorToast } = useToast() 
 
 type AiAction = 'summarize' | 'hats' | 'translate' | 'rewrite' | 'distant writing' | null
-type SummarizeMode = 'short' | 'medium' | 'long'
 type HatMode = 'white' | 'red' | 'black' | 'yellow' | 'green' | 'blue'
 type LanguageMode = 'it' | 'en' | 'fr' | 'de' | 'es'
 type RewriteStyle = 'grammar' | 'extension' | 'lexicon' | 'stylistic'
@@ -19,7 +18,6 @@ const props = defineProps<{
     selectedText: string
     result: string
     loading: boolean
-    summarizeMode: SummarizeMode
     hatMode: HatMode
     languageMode: LanguageMode
     rewriteStyle: RewriteStyle[]
@@ -27,7 +25,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: 'close'): void
-    (e: 'update:summarizeMode', value: SummarizeMode): void
     (e: 'update:hatMode', value: HatMode): void
     (e: 'update:languageMode', value: LanguageMode): void
     (e: 'update:rewriteStyle', value: RewriteStyle[]): void
@@ -60,15 +57,15 @@ const actionLabel = computed(() => {
 function toggleStyle(style: RewriteStyle) {
     const current = [...props.rewriteStyle];
     const index = current.indexOf(style);
-
     if (index > -1) {
         if (current.length > 1) {
             current.splice(index, 1);
+            emit('update:rewriteStyle', current);
         }
     } else {
         current.push(style);
+        emit('update:rewriteStyle', current);
     }
-    emit('update:rewriteStyle', current);
 }
 
 function copyToClipboard() {
@@ -85,7 +82,6 @@ function runAction() {
     if (!props.action) return
 
     let option = ''
-    if (props.action === 'summarize') option = props.summarizeMode
     if (props.action === 'hats') option = props.hatMode
     if (props.action === 'translate') option = props.languageMode
     if (props.action === 'rewrite') option = props.rewriteStyle.join(',')
@@ -125,19 +121,6 @@ function runAction() {
                 <div class="max-h-40 overflow-auto rounded bg-gray-100 p-2 dark:bg-neutral-800 whitespace-pre-wrap">
                     {{ selectedText || 'Nessun testo selezionato' }}
                 </div>
-            </div>
-
-            <div v-if="action === 'summarize'" class="flex justify-between items-center text-sm">
-                <p>Lunghezza</p>
-                <select
-                    class="rounded border border-gray-300 px-4 py-1 text-sm dark:bg-neutral-800"
-                    :value="summarizeMode"
-                    @change="$emit('update:summarizeMode', ($event.target as HTMLSelectElement).value as SummarizeMode)"
-                >
-                    <option value="short">Corto</option>
-                    <option value="medium">Medio</option>
-                    <option value="long">Lungo</option>
-                </select>
             </div>
 
             <div v-if="action === 'hats'" class="flex justify-between items-center text-sm">

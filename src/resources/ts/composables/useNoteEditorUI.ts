@@ -6,7 +6,6 @@ import { AiLang, AiTone } from '@/services/aiService'
 
 export type ViewMode = 'editor' | 'split' | 'render'
 export type AiAction = 'summarize' | 'hats' | 'translate' | 'rewrite' | 'distant writing' | null
-export type SummarizeMode = 'short' | 'medium' | 'long'
 export type HatMode = 'white' | 'red' | 'black' | 'yellow' | 'green' | 'blue'
 export type LanguageMode = 'it' | 'en' | 'fr' | 'de' | 'es'
 export type RewriteStyle = 'grammar' | 'extension' | 'lexicon' | 'stylistic'
@@ -56,7 +55,6 @@ export function useNoteEditorUI(options: {
     const aiResult = ref('')
     const selectedRange = ref<Range | null>(null)
 
-    const summarizeMode = ref<SummarizeMode>('medium')
     const hatMode = ref<HatMode>('white')
     const languageMode = ref<LanguageMode>('en')
     const rewriteStyle = ref<RewriteStyle[]>(['grammar'])
@@ -741,7 +739,6 @@ export function useNoteEditorUI(options: {
         selectedText,
         aiResult,
         loading,
-        summarizeMode,
         hatMode,
         languageMode,
         rewriteStyle,
