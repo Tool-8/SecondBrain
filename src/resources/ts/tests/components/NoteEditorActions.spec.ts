@@ -56,7 +56,7 @@ describe('NoteEditorActions', () => {
         expect(contextMenu.props('actions')).toHaveLength(3);
     });
 
-    it('calls exportTheNote with correct format when an action is clicked', async () => {
+    it('calls exportTheNote with pdf format when an action is clicked', async () => {
         const wrapper = mount(NoteEditorActions);
         const exportBtn = wrapper.findAll('button').find(b => b.text().includes('Esporta'));
         
@@ -69,6 +69,36 @@ describe('NoteEditorActions', () => {
         await contextMenu.vm.$emit('action-clicked', pdfAction);
         
         expect(mockExportTheNote).toHaveBeenCalledWith('pdf');
+    });
+
+    it('calls exportTheNote with html format when an action is clicked', async () => {
+        const wrapper = mount(NoteEditorActions);
+        const exportBtn = wrapper.findAll('button').find(b => b.text().includes('Esporta'));
+        
+        await exportBtn?.trigger('click');
+
+        const contextMenu = wrapper.findComponent({ name: 'ContextMenu' });
+        const actionsFromProps = contextMenu.props('actions');
+        const htmlAction = actionsFromProps.find((a: any) => a.label === 'Esporta in HTML');
+        
+        await contextMenu.vm.$emit('action-clicked', htmlAction);
+        
+        expect(mockExportTheNote).toHaveBeenCalledWith('html');
+    });
+
+    it('calls exportTheNote with md format when an action is clicked', async () => {
+        const wrapper = mount(NoteEditorActions);
+        const exportBtn = wrapper.findAll('button').find(b => b.text().includes('Esporta'));
+        
+        await exportBtn?.trigger('click');
+
+        const contextMenu = wrapper.findComponent({ name: 'ContextMenu' });
+        const actionsFromProps = contextMenu.props('actions');
+        const mdAction = actionsFromProps.find((a: any) => a.label === 'Esporta in MD');
+        
+        await contextMenu.vm.$emit('action-clicked', mdAction);
+        
+        expect(mockExportTheNote).toHaveBeenCalledWith('md');
     });
 
     it('closes the menu after an action has been executed', async () => {
