@@ -3,7 +3,6 @@ import GeneralButton from '@/components/GeneralButton.vue';
 import { useNoteEditor } from '@/composables/useNoteEditor';
 import { useContextMenu } from '@/composables/useContextMenu';
 import type { ContextAction } from '@/types/contextaction';
-import type { Note } from '@/types/note';
 import ContextMenu from '@/components/ContextMenu.vue';
 const { saveTheNote, saveTheNoteAs, exportTheNote, isNew } = useNoteEditor();
 
