@@ -51,6 +51,14 @@ describe('NoteArchiveCard', () => {
         expect(wrapper.find('a').attributes('href')).toBe('/notes/1');
     });
 
+    it('link falls back to # when id is empty', () => {
+        const wrapper = mount(NoteArchiveCard, {
+            props:  { ...defaultProps, id: '' },
+            global: { plugins: [router] },
+        });
+        expect(wrapper.find('a').attributes('href')).toBe('#');
+    });
+
     it('renders as a li element', () => {
         const wrapper = mount(NoteArchiveCard, {
             props:  defaultProps,
