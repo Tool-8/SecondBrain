@@ -6,14 +6,14 @@ import NoteArchiveCard from '@/components/NoteArchiveCard.vue';
 const router = createRouter({
     history: createMemoryHistory(),
     routes: [
-        { path: '/',          component: { template: '<div />' } },
+        { path: '/', component: { template: '<div />' } },
         { path: '/notes/:id', component: { template: '<div />' } },
     ],
 });
 
 const defaultProps = {
-    id:        '1',
-    name:      'Titolo nota',
+    id: '1',
+    name: 'Titolo nota',
     last_edit: '15/01/2024 - 10:30:00',
     creation:  '10/01/2024 - 08:00:00',
 };
@@ -56,7 +56,7 @@ describe('NoteArchiveCard', () => {
             props:  { ...defaultProps, id: '' },
             global: { plugins: [router] },
         });
-        expect(wrapper.find('a').attributes('href')).toBe('#');
+        expect(wrapper.find('a').attributes('href')).toBe('/#');
     });
 
     it('renders as a li element', () => {

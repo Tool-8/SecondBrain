@@ -9,7 +9,7 @@ defineProps<{
 
 <template>
     <li>
-        <RouterLink :to="'/notes/' + id || '#'">
+        <RouterLink :to="id ? '/notes/' + id : '#'">
             <div class="px-6 py-4 rounded shadow-xs border border-gray-200 hover:border-blue-500 hover:bg-blue-500/10 dark:border-neutral-800 dark:hover:border-blue-400 dark:hover:bg-blue-400/10">
                 <div class="flex flex-col gap-2">
                     <p class="font-bold text-xl dark:text-neutral-200">{{ name }}</p>
