@@ -24,15 +24,18 @@ export interface AiOptions {
 export const aiService = {
     process: async (
         content: string,
-        action:  AiAction,
+        action: AiAction,
         options: AiOptions = {}
     ): Promise<string> => {
+        const url = action === 'distant writing'
+            ? '/llm/distant-writing'
+            : action.endsWith('hat')
+                ? `/llm/hat/${action}`
+                : `/llm/${action}`;
+
         return serviceHandler(() =>
-            apiClient.post('/llm', {
-                content,
-                action,
-                options,
-            }).then(response => response.data.result)
+            apiClient.post(url, { content, ...options })
+                .then(response => response.data.result)
         );
     },
 

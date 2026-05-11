@@ -1,53 +1,88 @@
 <?php
-    namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api;
 
-    use App\Http\Controllers\Controller;
-    use App\Services\LlmService;
-    use Illuminate\Http\JsonResponse;
-    use Illuminate\Http\Request;
-    use Illuminate\Validation\Rule;
-    use RuntimeException;
-    use InvalidArgumentException;
+use App\Http\Controllers\Controller;
+use App\Services\LlmService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use RuntimeException;
 
-    class LlmController extends Controller {
-        public function __construct(private readonly LlmService $service) { }
+class LlmController extends Controller {
+    public function __construct(private readonly LlmService $service) {}
 
-        public function __invoke(Request $request) : JsonResponse {
-            $validated = $request->validate([
-                'content' => 'required|string',
-                'action'  => 'required|string|in:summarize,translate,rewrite,blackhat,bluehat,greenhat,redhat,whitehat,yellowhat,distant writing',
-                'options' => 'array',
-                'options.*' => 'in:style,lang',
-                'options.style'   => [
-                Rule::requiredIf($request->action === 'rewrite'),
-                    'array',
-                    'min:1',
-                ],
-                'options.style.*' => [
-                    Rule::when($request->action === 'rewrite', [
-                        'string',
-                        'in:grammar,extension,lexicon,stylistic',
-                    ]),
-                ],
-                'options.lang' => [
-                    Rule::requiredIf($request->action === 'translate'),
-                    Rule::when($request->action === 'translate', [
-                        'string',
-                        'in:it,en,fr,de,es,pt',
-                    ]),
-                ],
-                ],[
-                        'options.lang.in' => 'Translation in :input is not supported.'
-                    ]);
+    public function summarize(Request $request): JsonResponse {
+        $validated = $request->validate([
+            'content' => 'required|string',
+        ]);
 
-            try {
-                $result = $this->service->process($validated['content'], $validated['action'], $validated['options'] ?? []);
-                return response()->json(['result' => $result], 200);
-            } catch (RuntimeException $e) {
-                return response()->json(['message' => $e->getMessage()], 502);
-            } catch (InvalidArgumentException $e) {
-                return response()->json(['message' => $e->getMessage()], 400);
-            }
+        try {
+            $result = $this->service->process($validated['content'], 'summarize', []);
+            return response()->json(['result' => $result], 200);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
         }
     }
-?>
+
+    public function translate(Request $request): JsonResponse {
+        $validated = $request->validate([
+            'content' => 'required|string',
+            'lang'    => 'required|string|in:it,en,fr,de,es,pt',
+        ], [
+            'lang.in' => 'Translation in :input is not supported.'
+        ]);
+
+        try {
+            $result = $this->service->process($validated['content'], 'translate', ['lang' => $validated['lang']]);
+            return response()->json(['result' => $result], 200);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
+    }
+
+    public function rewrite(Request $request): JsonResponse {
+        $validated = $request->validate([
+            'content' => 'required|string',
+            'style'   => 'required|array|min:1',
+            'style.*' => 'string|in:grammar,extension,lexicon,stylistic',
+        ]);
+
+        try {
+            $result = $this->service->process($validated['content'], 'rewrite', ['style' => $validated['style']]);
+            return response()->json(['result' => $result], 200);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
+    }
+
+    public function hat(Request $request, string $type): JsonResponse {
+        $validated = $request->validate([
+            'content' => 'required|string',
+        ]);
+
+        $hats = ['blackhat','bluehat','greenhat','redhat','whitehat','yellowhat'];
+
+        if (!in_array($type, $hats)) {
+            return response()->json(['message' => "Hat '$type' not supported."], 400);
+        }
+
+        try {
+            $result = $this->service->process($validated['content'], $type, []);
+            return response()->json(['result' => $result], 200);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
+    }
+
+    public function distantWriting(Request $request): JsonResponse {
+        $validated = $request->validate([
+            'content' => 'required|string',
+        ]);
+
+        try {
+            $result = $this->service->process($validated['content'], 'distant writing', []);
+            return response()->json(['result' => $result], 200);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
+    }
+}

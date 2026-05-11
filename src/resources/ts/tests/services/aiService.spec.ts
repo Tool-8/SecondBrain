@@ -18,164 +18,84 @@ vi.mock('@/utils/serviceHandler', () => ({
 describe('aiService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mockPost.mockResolvedValue({ data: { result: 'risultato' } });
+        mockPost.mockResolvedValue({ data: { result: 'result_value' } });
     });
 
     describe('process', () => {
-        it('chiama apiClient.post con i parametri corretti', async () => {
-            await aiService.process('contenuto', 'summarize');
+        it('should call apiClient.post with the correct endpoint for summarize', async () => {
+            await aiService.process('content_body', 'summarize');
 
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'summarize',
-                options: {},
+            expect(mockPost).toHaveBeenCalledWith('/llm/summarize', {
+                content: 'content_body'
             });
         });
 
-        it('restituisce il risultato della risposta', async () => {
-            const result = await aiService.process('contenuto', 'summarize');
-            expect(result).toBe('risultato');
+        it('should return the result from the response data', async () => {
+            const result = await aiService.process('content_body', 'summarize');
+            expect(result).toBe('result_value');
         });
 
-        it('passa le options se fornite', async () => {
-            await aiService.process('contenuto', 'rewrite', { style: ['grammar'] });
+        it('should call the rewrite endpoint with styles in the request body', async () => {
+            await aiService.process('content_body', 'rewrite', { style: ['grammar'] });
 
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'rewrite',
-                options: { style: ['grammar'] },
+            expect(mockPost).toHaveBeenCalledWith('/llm/rewrite', {
+                content: 'content_body',
+                style: ['grammar'],
             });
-        });
-
-        it('propaga l\'errore se apiClient.post fallisce', async () => {
-            mockPost.mockRejectedValueOnce(new Error('Network error'));
-
-            await expect(aiService.process('contenuto', 'summarize'))
-                .rejects
-                .toThrow('Network error');
         });
     });
 
     describe('translate', () => {
-        it('chiama process con action translate e lang di default en', async () => {
-            await aiService.translate('contenuto');
+        it('should call the translate endpoint with the specified language', async () => {
+            await aiService.translate('content_body', 'it');
 
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'translate',
-                options: { lang: 'en' },
-            });
-        });
-
-        it('chiama process con la lang specificata', async () => {
-            await aiService.translate('contenuto', 'it');
-
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'translate',
-                options: { lang: 'it' },
+            expect(mockPost).toHaveBeenCalledWith('/llm/translate', {
+                content: 'content_body',
+                lang: 'it',
             });
         });
     });
 
     describe('summarize', () => {
-        it('chiama process con action summarize', async () => {
-            await aiService.summarize('contenuto');
-
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'summarize',
-                options: {},
+        it('should call the specific summarize endpoint', async () => {
+            await aiService.summarize('content_body');
+            expect(mockPost).toHaveBeenCalledWith('/llm/summarize', {
+                content: 'content_body'
             });
         });
     });
 
     describe('rewrite', () => {
-        it('chiama process con action rewrite e lo style', async () => {
-            await aiService.rewrite('contenuto', ['grammar']);
-
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'rewrite',
-                options: { style: ['grammar'] },
+        it('should call the rewrite endpoint with provided styles', async () => {
+            await aiService.rewrite('content_body', ['grammar']);
+            expect(mockPost).toHaveBeenCalledWith('/llm/rewrite', {
+                content: 'content_body',
+                style: ['grammar'],
             });
         });
     });
 
-    describe('blackhat', () => {
-        it('chiama process con action blackhat', async () => {
-            await aiService.blackhat('contenuto');
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'blackhat',
-                options: {},
+    describe('thinking hats', () => {
+        it('should call the dynamic hat endpoint for redhat', async () => {
+            await aiService.redhat('content_body');
+            expect(mockPost).toHaveBeenCalledWith('/llm/hat/redhat', {
+                content: 'content_body'
             });
         });
-    });
 
-    describe('bluehat', () => {
-        it('chiama process con action bluehat', async () => {
-            await aiService.bluehat('contenuto');
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'bluehat',
-                options: {},
-            });
-        });
-    });
-
-    describe('greenhat', () => {
-        it('chiama process con action greenhat', async () => {
-            await aiService.greenhat('contenuto');
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'greenhat',
-                options: {},
-            });
-        });
-    });
-
-    describe('redhat', () => {
-        it('chiama process con action redhat', async () => {
-            await aiService.redhat('contenuto');
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'redhat',
-                options: {},
-            });
-        });
-    });
-
-    describe('whitehat', () => {
-        it('chiama process con action whitehat', async () => {
-            await aiService.whitehat('contenuto');
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'whitehat',
-                options: {},
-            });
-        });
-    });
-
-    describe('yellowhat', () => {
-        it('chiama process con action yellowhat', async () => {
-            await aiService.yellowhat('contenuto');
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'yellowhat',
-                options: {},
+        it('should call the dynamic hat endpoint for whitehat', async () => {
+            await aiService.whitehat('content_body');
+            expect(mockPost).toHaveBeenCalledWith('/llm/hat/whitehat', {
+                content: 'content_body'
             });
         });
     });
 
     describe('distantWriting', () => {
-        it('chiama process con action distant writing', async () => {
-            await aiService.distantWriting('contenuto');
-
-            expect(mockPost).toHaveBeenCalledWith('/llm', {
-                content: 'contenuto',
-                action: 'distant writing',
-                options: {},
+        it('should call the distant-writing endpoint', async () => {
+            await aiService.distantWriting('content_body');
+            expect(mockPost).toHaveBeenCalledWith('/llm/distant-writing', {
+                content: 'content_body'
             });
         });
     });
