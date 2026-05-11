@@ -89,6 +89,34 @@ describe('aiService', () => {
                 content: 'content_body'
             });
         });
+
+        it('should call the dynamic hat endpoint for yellowhat', async () => {
+            await aiService.yellowhat('content_body');
+            expect(mockPost).toHaveBeenCalledWith('/llm/hat/yellowhat', {
+                content: 'content_body'
+            });
+        });
+
+        it('should call the dynamic hat endpoint for greenhat', async () => {
+            await aiService.greenhat('content_body');
+            expect(mockPost).toHaveBeenCalledWith('/llm/hat/greenhat', {
+                content: 'content_body'
+            });
+        });
+
+        it('should call the dynamic hat endpoint for blackhat', async () => {
+            await aiService.blackhat('content_body');
+            expect(mockPost).toHaveBeenCalledWith('/llm/hat/blackhat', {
+                content: 'content_body'
+            });
+        });
+
+        it('should call the dynamic hat endpoint for bluehat', async () => {
+            await aiService.bluehat('content_body');
+            expect(mockPost).toHaveBeenCalledWith('/llm/hat/bluehat', {
+                content: 'content_body'
+            });
+        });
     });
 
     describe('distantWriting', () => {
