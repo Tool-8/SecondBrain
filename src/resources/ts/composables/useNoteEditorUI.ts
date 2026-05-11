@@ -398,8 +398,6 @@ export function useNoteEditorUI(options: {
             hidden: mode === 'replace',
         })
 
-        console.log(parentHtml)
-
         const childHtml = createAiBlockHtml({
             type: 'child',
             groupId,
