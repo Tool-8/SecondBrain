@@ -394,7 +394,7 @@ export function useNoteEditorUI(options: {
             type: 'parent',
             groupId,
             aiIndex,
-            text: selected,
+            text: aiAction.value === 'distant writing' ? '<!--[Inizio commento] ' + selected + ' [Fine commento]-->' : selected,
             hidden: mode === 'replace',
         })
 
@@ -453,9 +453,12 @@ export function useNoteEditorUI(options: {
         }
 
         if (mode === 'bottom') {
-            html = childHtml + exitHtml
+            const selection = window.getSelection()
+            selection?.removeAllRanges()
+            selection?.addRange(range)
+            document.execCommand('insertHTML', false, parentHtml)
 
-            editorRef.value.insertAdjacentHTML('beforeend', html)
+            editorRef.value.insertAdjacentHTML('beforeend', childHtml + exitHtml)
 
             const exit = editorRef.value.querySelector(
                 '[data-normal-block="true"]:last-child'
