@@ -19,5 +19,11 @@
     
     Route::post('notes/import',ImportController::class); 
 
-    Route::post('/llm', LlmController::class);
+    Route::prefix('llm')->group(function () {
+        Route::post('/summarize', [LlmController::class, 'summarize']);
+        Route::post('/translate', [LlmController::class, 'translate']);
+        Route::post('/rewrite', [LlmController::class, 'rewrite']);
+        Route::post('/hat/{type}', [LlmController::class, 'hat']);
+        Route::post('/distant-writing', [LlmController::class, 'distantWriting']);
+    });
 ?>
