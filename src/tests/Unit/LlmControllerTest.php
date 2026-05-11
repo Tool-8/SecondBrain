@@ -154,6 +154,72 @@ class LlmControllerTest extends TestCase {
         $this->assertSame('Errore LLM 500: Internal Server Error', $response->getData(true)['message']);
     }
 
+    public function test_translate_returns_502_on_llm_error(): void {
+        $this->service
+            ->method('process')
+            ->willThrowException(new RuntimeException('Errore LLM 500: Internal Server Error'));
+
+        $request = Request::create('/llm/translate', 'POST', [
+            'content' => 'some text',
+            'lang' => 'en'
+        ]);
+
+        $response = $this->controller->translate($request);
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame(502, $response->getStatusCode());
+        $this->assertSame('Errore LLM 500: Internal Server Error', $response->getData(true)['message']);
+    }
+
+    public function test_rewrite_returns_502_on_llm_error(): void {
+        $this->service
+            ->method('process')
+            ->willThrowException(new RuntimeException('Errore LLM 500: Internal Server Error'));
+
+        $request = Request::create('/llm/rewrite', 'POST', [
+            'content' => 'some text',
+            'style' => ['grammar']
+        ]);
+
+        $response = $this->controller->rewrite($request);
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame(502, $response->getStatusCode());
+        $this->assertSame('Errore LLM 500: Internal Server Error', $response->getData(true)['message']);
+    }
+
+    public function test_hat_returns_502_on_llm_error(): void {
+        $this->service
+            ->method('process')
+            ->willThrowException(new RuntimeException('Errore LLM 500: Internal Server Error'));
+
+        $request = Request::create('/llm/hat/redhat', 'POST', [
+            'content' => 'some text',
+        ]);
+
+        $response = $this->controller->hat($request, 'redhat');
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame(502, $response->getStatusCode());
+        $this->assertSame('Errore LLM 500: Internal Server Error', $response->getData(true)['message']);
+    }
+
+    public function test_distant_writing_returns_502_on_llm_error(): void {
+        $this->service
+            ->method('process')
+            ->willThrowException(new RuntimeException('Errore LLM 500: Internal Server Error'));
+
+        $request = Request::create('/llm/distant-writing', 'POST', [
+            'content' => 'some text',
+        ]);
+
+        $response = $this->controller->distantWriting($request);
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame(502, $response->getStatusCode());
+        $this->assertSame('Errore LLM 500: Internal Server Error', $response->getData(true)['message']);
+    }
+
     public function test_hat_returns_400_with_invalid_type(): void {
         $request = Request::create('/llm/hat/purplehat', 'POST', [
             'content' => 'some text',
