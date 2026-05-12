@@ -701,6 +701,7 @@ describe('useNoteEditorUI', () => {
             )
         })
     })
+
     describe('handleListEnter', () => {
         const setupSelection = (node: Node, offset: number) => {
             const deleteRange = {
@@ -1019,6 +1020,229 @@ describe('useNoteEditorUI', () => {
                 expect(composable.isAiOpen.value).toBe(false)
                 expect(composable.aiAction.value).toBe(null)
             })
+        })
+    })
+    
+    describe('retranslateAiBlock', () => {
+        /**
+         * Costruisce un editor DOM con un blocco AI parent + uno o più child
+         * e registra il ref sull'editor.
+         */
+        const buildEditor = (composable: ReturnType<typeof useNoteEditorUI>) => {
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
+            return editor
+        }
+
+        const buildParent = (groupId: string, innerText: string) => {
+            const parent = document.createElement('div')
+            parent.setAttribute('data-ai-parent', groupId)
+            const content = document.createElement('span')
+            content.setAttribute('data-ai-content', 'true')
+            content.innerText = innerText
+            parent.appendChild(content)
+            return parent
+        }
+
+        const buildChild = (
+            groupId: string,
+            lang: string,
+            opts: { sourceChildId?: string; dirty?: boolean; withButton?: boolean } = {}
+        ) => {
+            const child = document.createElement('div')
+            child.setAttribute('data-ai-child', groupId)
+            child.setAttribute('data-ai-lang', lang)
+            if (opts.sourceChildId) child.setAttribute('data-ai-source-child', opts.sourceChildId)
+            if (opts.dirty) child.setAttribute('data-ai-dirty', '1')
+
+            const content = document.createElement('span')
+            content.setAttribute('data-ai-content', 'true')
+            content.textContent = 'vecchia traduzione'
+            child.appendChild(content)
+
+            if (opts.withButton) {
+                const btn = document.createElement('button')
+                btn.setAttribute('data-ai-retranslate', '1')
+                child.appendChild(btn)
+            }
+
+            return child
+        }
+
+        beforeEach(() => {
+            mockAi.result.value = 'nuova traduzione'
+            mockAi.error.value = ''
+            mockAi.translate.mockReset()
+        })
+
+        it('should do nothing if groupId is missing', async () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            buildEditor(composable)
+
+            const child = document.createElement('div')
+
+            await composable.retranslateAiBlock(child)
+
+            expect(mockAi.translate).not.toHaveBeenCalled()
+        })
+
+        it('should do nothing if lang is missing', async () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            buildEditor(composable)
+
+            const child = document.createElement('div')
+            child.setAttribute('data-ai-child', 'grp1')
+
+            await composable.retranslateAiBlock(child)
+
+            expect(mockAi.translate).not.toHaveBeenCalled()
+        })
+
+        it('should call translate using parent content when no sourceChildId', async () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const parent = buildParent('grp1', 'testo originale')
+            const child = buildChild('grp1', 'en')
+            editor.appendChild(parent)
+            editor.appendChild(child)
+
+            await composable.retranslateAiBlock(child)
+
+            expect(mockAi.translate).toHaveBeenCalledWith('testo originale', 'en')
+        })
+
+        it('should update content element with AI result', async () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const parent = buildParent('grp1', 'testo originale')
+            const child = buildChild('grp1', 'fr')
+            editor.appendChild(parent)
+            editor.appendChild(child)
+
+            await composable.retranslateAiBlock(child)
+
+            const content = child.querySelector('[data-ai-content]') as HTMLElement
+            expect(content.textContent).toBe('nuova traduzione')
+        })
+
+        it('should remove data-ai-dirty attribute after successful translation', async () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const parent = buildParent('grp1', 'testo originale')
+            const child = buildChild('grp1', 'de', { dirty: true })
+            editor.appendChild(parent)
+            editor.appendChild(child)
+
+            await composable.retranslateAiBlock(child)
+
+            expect(child.dataset.aiDirty).toBeUndefined()
+        })
+
+        it('should hide retranslate button after successful translation', async () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const parent = buildParent('grp1', 'testo originale')
+            const child = buildChild('grp1', 'es', { dirty: true, withButton: true })
+            editor.appendChild(parent)
+            editor.appendChild(child)
+
+            await composable.retranslateAiBlock(child)
+
+            const btn = child.querySelector('[data-ai-retranslate]') as HTMLElement
+            expect(btn.classList.contains('hidden')).toBe(true)
+        })
+
+        it('should call setEditorContent after successful translation', async () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const parent = buildParent('grp1', 'testo originale')
+            const child = buildChild('grp1', 'it')
+            editor.appendChild(parent)
+            editor.appendChild(child)
+
+            await composable.retranslateAiBlock(child)
+
+            expect(setEditorContent).toHaveBeenCalled()
+        })
+
+        it('should show warning toast and abort when AI returns an error', async () => {
+            mockAi.error.value = 'errore di traduzione'
+
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const parent = buildParent('grp1', 'testo originale')
+            const child = buildChild('grp1', 'en')
+            editor.appendChild(parent)
+            editor.appendChild(child)
+
+            await composable.retranslateAiBlock(child)
+
+            expect(warningToast).toHaveBeenCalledWith('Errore AI', 'errore di traduzione')
+            const content = child.querySelector('[data-ai-content]') as HTMLElement
+            expect(content.textContent).toBe('vecchia traduzione')
+        })
+
+        it('should call translate using sourceChild content when sourceChildId is set', async () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const sourceChild = document.createElement('div')
+            sourceChild.setAttribute('data-ai-child', 'src-child')
+            const sourceContent = document.createElement('span')
+            sourceContent.setAttribute('data-ai-content', 'true')
+            sourceContent.innerText = 'testo sorgente figlio'
+            sourceChild.appendChild(sourceContent)
+
+            const child = buildChild('grp1', 'ja', { sourceChildId: 'src-child' })
+
+            editor.appendChild(sourceChild)
+            editor.appendChild(child)
+
+            await composable.retranslateAiBlock(child)
+
+            expect(mockAi.translate).toHaveBeenCalledWith('testo sorgente figlio', 'ja')
+        })
+
+        it('should do nothing if sourceChild is not found in DOM', async () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            buildEditor(composable)
+
+            const child = buildChild('grp1', 'zh', { sourceChildId: 'non-existent-id' })
+
+            await composable.retranslateAiBlock(child)
+
+            expect(mockAi.translate).not.toHaveBeenCalled()
+        })
+
+        it('should do nothing if parent block is not found in DOM', async () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            buildEditor(composable)
+
+            const child = buildChild('grp-inesistente', 'pt')
+
+            await composable.retranslateAiBlock(child)
+
+            expect(mockAi.translate).not.toHaveBeenCalled()
+        })
+
+        it('should do nothing if parent has empty source text', async () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const parent = buildParent('grp1', '   ')
+            const child = buildChild('grp1', 'en')
+            editor.appendChild(parent)
+            editor.appendChild(child)
+
+            await composable.retranslateAiBlock(child)
+
+            expect(mockAi.translate).not.toHaveBeenCalled()
         })
     })
 })
