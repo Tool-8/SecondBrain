@@ -183,6 +183,58 @@ describe('useNoteEditorUI', () => {
         })
     })
 
+    describe('editor history', () => {
+        let mockEditor: HTMLDivElement
+
+        beforeEach(() => {
+            mockEditor = document.createElement('div')
+            mockEditor.innerHTML = '<p>testo iniziale</p>'
+            mockEditor.focus = vi.fn() // Mock del metodo focus
+        })
+
+        it('should handle undo correctly', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            composable.setEditorRef(mockEditor)
+
+            composable.undoEdit()
+
+            expect(mockEditor.focus).toHaveBeenCalled()
+            expect(document.execCommand).toHaveBeenCalledWith('undo')
+            expect(setEditorContent).toHaveBeenCalledWith('<p>testo iniziale</p>')
+        })
+
+        it('should handle redo correctly', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            composable.setEditorRef(mockEditor)
+
+            composable.redoEdit()
+            expect(mockEditor.focus).toHaveBeenCalled()
+            expect(document.execCommand).toHaveBeenCalledWith('redo')
+            expect(setEditorContent).toHaveBeenCalledWith('<p>testo iniziale</p>')
+        })
+
+        it('should not throw error if editorRef is null during undo/redo', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            expect(() => {
+                composable.undoEdit()
+                composable.redoEdit()
+            }).not.toThrow()
+            expect(document.execCommand).toHaveBeenCalledTimes(2)
+        })
+    })
+
     describe('view mode', () => {
         it('should set render view mode', () => {
             const composable = useNoteEditorUI({
@@ -303,6 +355,24 @@ describe('useNoteEditorUI', () => {
 
             expect(mockAi.distantWriting).toHaveBeenCalledWith(
                 'argomento del testo'
+            )
+        })
+
+        it('should shoe warning toast for not supported action', async () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            await composable.handleAiRun({
+                action: 'invalid' as any,
+                selectedText: 'argomento del testo',
+                option: '',
+            })
+
+            expect(warningToast).toHaveBeenCalledWith(
+               'Azione non supportata', 
+               'Hai inserito un\'azione non supportata'
             )
         })
 

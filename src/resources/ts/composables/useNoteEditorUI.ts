@@ -229,8 +229,8 @@ export function useNoteEditorUI(options: {
                 await distantWriting(payload.selectedText)
                 break;
             default:
-                console.log('Hello');
-                return null;
+                warningToast('Azione non supportata', 'Hai inserito un\'azione non supportata')
+                return
         }
 
         if (error.value) {
