@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Ref, ref } from 'vue'
 import { useNoteEditorUI } from '@/composables/useNoteEditorUI'
+import { set } from '@vueuse/core'
 
 const warningToast = vi.fn()
 
@@ -39,6 +40,20 @@ describe('useNoteEditorUI', () => {
         setEditorContent = vi.fn()
 
         vi.clearAllMocks()
+
+        Object.defineProperty(document, 'execCommand', {
+            value: vi.fn(),
+            writable: true,
+        })
+
+        vi.spyOn(window, 'getSelection').mockReturnValue({
+            rangeCount: 0,
+            anchorNode: document.createTextNode(''),
+            anchorOffset: 0,
+            getRangeAt: vi.fn(),
+            removeAllRanges: vi.fn(),
+            addRange: vi.fn(),
+        } as unknown as Selection)
     })
 
     describe('text properties', () => {
@@ -274,6 +289,23 @@ describe('useNoteEditorUI', () => {
             )
         })
 
+        it('should call distant writing action', async () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            await composable.handleAiRun({
+                action: 'distant writing',
+                selectedText: 'argomento del testo',
+                option: '',
+            })
+
+            expect(mockAi.distantWriting).toHaveBeenCalledWith(
+                'argomento del testo'
+            )
+        })
+
         it('should show warning toast when ai returns error', async () => {
             mockAi.error.value = 'errore simulato'
 
@@ -342,12 +374,6 @@ describe('useNoteEditorUI', () => {
         })
     })
     describe('applyFormat', () => {
-        beforeEach(() => {
-            Object.defineProperty(document, 'execCommand', {
-                value: vi.fn(),
-                writable: true,
-            })
-        })
 
         const setupSelection = (testoSelezionato: string) => {
             const mockRange = {
@@ -603,6 +629,326 @@ describe('useNoteEditorUI', () => {
                 false,
                 'documentazione'
             )
+        })
+    })
+    describe('handleListEnter', () => {
+        const setupSelection = (node: Node, offset: number) => {
+            const deleteRange = {
+                setStart: vi.fn(),
+                setEnd: vi.fn(),
+                deleteContents: vi.fn(),
+            }
+
+            const range = {
+                cloneRange: vi.fn(() => deleteRange),
+            } as unknown as Range
+
+            vi.spyOn(window, 'getSelection').mockReturnValue({
+                rangeCount: 1,
+                anchorNode: node,
+                anchorOffset: offset,
+                getRangeAt: () => range,
+                removeAllRanges: vi.fn(),
+                addRange: vi.fn(),
+            } as unknown as Selection)
+
+            return range
+        }
+
+        it('should continue unordered list with bullet', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const textNode = document.createTextNode('- primo elemento')
+
+            const range = setupSelection(textNode, 15)
+
+            const result = composable.handleListEnter(
+                textNode,
+                15,
+                range
+            )
+
+            expect(result).toBe(true)
+        })
+
+        it('should continue ordered list with incremented number', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const textNode = document.createTextNode('1. primo elemento')
+
+            const range = setupSelection(textNode, 17)
+
+            const result = composable.handleListEnter(
+                textNode,
+                17,
+                range
+            )
+
+            expect(result).toBe(true)
+        })
+
+        it('should exit list when line is empty', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const textNode = document.createTextNode('- ')
+
+            const range = setupSelection(textNode, 2)
+
+            const result = composable.handleListEnter(
+                textNode,
+                2,
+                range
+            )
+
+            expect(result).toBe(true)
+        })
+    })
+    describe('handleEditorKeydown', () => {
+        const createRangeMock = () => {
+            return {
+                deleteContents: vi.fn(),
+                insertNode: vi.fn(),
+                setStart: vi.fn(),
+                setEnd: vi.fn(),
+                setStartAfter: vi.fn(),
+                setEndAfter: vi.fn(),
+                collapse: vi.fn(),
+                cloneRange: vi.fn(),
+            } as unknown as Range
+        }
+
+        const setupSelection = (node: Node, range: Range) => {
+            vi.spyOn(window, 'getSelection').mockReturnValue({
+                rangeCount: 1,
+                anchorNode: node,
+                anchorOffset: 0,
+                getRangeAt: () => range,
+                removeAllRanges: vi.fn(),
+                addRange: vi.fn(),
+                toString: () => node.textContent ?? '',
+            } as unknown as Selection)
+        }
+
+        it('should not handle key if not Enter', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const node = document.createTextNode('testo')
+            const range = createRangeMock()
+
+            setupSelection(node, range)
+
+            const event = new KeyboardEvent('keydown', {
+                key: 'a',
+            })
+
+            vi.spyOn(event, 'preventDefault')
+
+            composable.handleEditorKeydown(event)
+
+            expect(event.preventDefault).not.toHaveBeenCalled()
+        })
+
+        it('should insert line break when Shift+Enter inside AI block', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const editor = document.createElement('div')
+            const aiBlock = document.createElement('div')
+            aiBlock.setAttribute('data-ai-parent', '1')
+
+            editor.appendChild(aiBlock)
+            composable.setEditorRef(editor)
+
+            const node = document.createTextNode('testo')
+            aiBlock.appendChild(node)
+
+            const range = createRangeMock()
+
+            setupSelection(node, range)
+
+            const event = new KeyboardEvent('keydown', {
+                key: 'Enter',
+                shiftKey: true,
+            })
+
+            vi.spyOn(event, 'preventDefault')
+
+            composable.handleEditorKeydown(event)
+
+            expect(event.preventDefault).toHaveBeenCalled()
+        })
+
+        it('should move outside AI block when pressing Enter inside AI block', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const editor = document.createElement('div')
+            const aiBlock = document.createElement('div')
+            aiBlock.setAttribute('data-ai-parent', '1')
+
+            editor.appendChild(aiBlock)
+            composable.setEditorRef(editor)
+
+            const node = document.createTextNode('testo')
+            aiBlock.appendChild(node)
+
+            const range = createRangeMock()
+
+            setupSelection(node, range)
+
+            const event = new KeyboardEvent('keydown', {
+                key: 'Enter',
+                shiftKey: false,
+            })
+
+            vi.spyOn(event, 'preventDefault')
+
+            composable.handleEditorKeydown(event)
+
+            expect(event.preventDefault).toHaveBeenCalled()
+        })
+
+        it('should ignore Enter when selection is invalid', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            vi.spyOn(window, 'getSelection').mockReturnValue({
+                rangeCount: 0,
+            } as unknown as Selection)
+
+            const event = new KeyboardEvent('keydown', {
+                key: 'Enter',
+            })
+
+            vi.spyOn(event, 'preventDefault')
+
+            composable.handleEditorKeydown(event)
+
+            expect(event.preventDefault).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('open/close AI panel', () => {
+        const setupSelection = (text: string) => {
+            const range = document.createRange()
+
+            vi.spyOn(window, 'getSelection').mockReturnValue({
+                rangeCount: 1,
+                toString: () => text,
+                getRangeAt: () => range,
+            } as unknown as Selection)
+        }
+
+        describe('openAiPanel', () => {
+            it('should open AI panel when text is selected', () => {
+                const composable = useNoteEditorUI({
+                    noteContent,
+                    setEditorContent,
+                })
+
+                setupSelection('testo selezionato')
+
+                composable.openAiPanel('summarize')
+
+                expect(composable.isAiOpen.value).toBe(true)
+                expect(composable.aiAction.value).toBe('summarize')
+                expect(composable.selectedText.value).toBe('testo selezionato')
+            })
+
+            it('should not open AI panel when selection is empty', () => {
+                const composable = useNoteEditorUI({
+                    noteContent,
+                    setEditorContent,
+                })
+
+                setupSelection('   ')
+
+                composable.openAiPanel('rewrite')
+
+                expect(composable.isAiOpen.value).toBe(false)
+                expect(composable.aiAction.value).toBe(null)
+                expect(warningToast).toHaveBeenCalledWith(
+                    'Attenzione',
+                    'Seleziona del testo prima di usare questa funzione AI.'
+                )
+            })
+
+            it('should not open AI panel when selection is null', () => {
+                const composable = useNoteEditorUI({
+                    noteContent,
+                    setEditorContent,
+                })
+
+                vi.spyOn(window, 'getSelection').mockReturnValue(null as any)
+
+                composable.openAiPanel('summarize')
+
+                expect(composable.isAiOpen.value).toBe(false)
+                expect(composable.aiAction.value).toBe(null)
+            })
+
+            it('should set correct action for translate', () => {
+                const composable = useNoteEditorUI({
+                    noteContent,
+                    setEditorContent,
+                })
+
+                setupSelection('testo')
+
+                composable.openAiPanel('translate')
+
+                expect(composable.isAiOpen.value).toBe(true)
+                expect(composable.aiAction.value).toBe('translate')
+            })
+
+            it('should set correct action for distant writing', () => {
+                const composable = useNoteEditorUI({
+                    noteContent,
+                    setEditorContent,
+                })
+
+                setupSelection('testo creativo')
+
+                composable.openAiPanel('distant writing')
+
+                expect(composable.isAiOpen.value).toBe(true)
+                expect(composable.aiAction.value).toBe('distant writing')
+            })
+        })
+
+        describe('closeAiPanel', () => {
+            it('should close AI panel and reset action', () => {
+                const composable = useNoteEditorUI({
+                    noteContent,
+                    setEditorContent,
+                })
+
+                composable.isAiOpen.value = true
+                composable.aiAction.value = 'summarize'
+
+                composable.closeAiPanel()
+
+                expect(composable.isAiOpen.value).toBe(false)
+                expect(composable.aiAction.value).toBe(null)
+            })
         })
     })
 })

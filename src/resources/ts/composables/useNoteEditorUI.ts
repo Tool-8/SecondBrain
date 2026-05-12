@@ -766,5 +766,6 @@ export function useNoteEditorUI(options: {
         escapeHtml,
         htmlToMarkdownText,
         formatList,
+        handleListEnter,
     }
 }
