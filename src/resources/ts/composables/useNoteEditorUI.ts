@@ -229,8 +229,8 @@ export function useNoteEditorUI(options: {
                 await distantWriting(payload.selectedText)
                 break;
             default:
-                console.log('Hello');
-                return null;
+                warningToast('Azione non supportata', 'Hai inserito un\'azione non supportata')
+                return
         }
 
         if (error.value) {
@@ -252,7 +252,7 @@ export function useNoteEditorUI(options: {
             el.replaceWith(document.createTextNode(content?.textContent || el.textContent || ''))
         })
 
-        return div.innerText
+        return div.textContent ?? ''
     }
 
     function createAiGroupId() {
@@ -763,5 +763,9 @@ export function useNoteEditorUI(options: {
         handleEditorKeydown,
         stripAiMarkers,
         retranslateAiBlock,
+        escapeHtml,
+        htmlToMarkdownText,
+        formatList,
+        handleListEnter,
     }
 }
