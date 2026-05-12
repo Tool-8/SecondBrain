@@ -763,5 +763,8 @@ export function useNoteEditorUI(options: {
         handleEditorKeydown,
         stripAiMarkers,
         retranslateAiBlock,
+        escapeHtml,
+        htmlToMarkdownText,
+        formatList,
     }
 }

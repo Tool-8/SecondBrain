@@ -1,313 +1,608 @@
-import { describe, it, expect, vi } from 'vitest'
-import { ref } from 'vue'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { Ref, ref } from 'vue'
 import { useNoteEditorUI } from '@/composables/useNoteEditorUI'
+
+const warningToast = vi.fn()
+
+const mockAi = {
+    result: ref('risultato AI'),
+    error: ref(''),
+    loading: ref(false),
+    translate: vi.fn(),
+    summarize: vi.fn(),
+    rewrite: vi.fn(),
+    distantWriting: vi.fn(),
+    bluehat: vi.fn(),
+    redhat: vi.fn(),
+    yellowhat: vi.fn(),
+    greenhat: vi.fn(),
+    whitehat: vi.fn(),
+    blackhat: vi.fn(),
+}
 
 vi.mock('@/composables/useToast', () => ({
     useToast: () => ({
-        warningToast: vi.fn(),
+        warningToast,
     }),
 }))
 
 vi.mock('@/composables/useAi', () => ({
-    useAi: () => ({
-        result: ref(''),
-        error: ref(null),
-        loading: ref(false),
-        translate: vi.fn(),
-        summarize: vi.fn(),
-        rewrite: vi.fn(),
-        distantWriting: vi.fn(),
-        bluehat: vi.fn(),
-        redhat: vi.fn(),
-        yellowhat: vi.fn(),
-        greenhat: vi.fn(),
-        whitehat: vi.fn(),
-        blackhat: vi.fn(),
-    }),
+    useAi: () => mockAi,
 }))
 
-vi.mock('@/services/aiService', () => ({
-    AiLang: {},
-    AiTone: {},
-}))
+describe('useNoteEditorUI', () => {
+    let noteContent: Ref<string>
+    let setEditorContent: (html: string) => void
 
-// --- funzioni non esportate da useNoteEditorUI (non testabile con mock dom perché jsdom non support execCommand)---
+    beforeEach(() => {
+        noteContent = ref('<p>testo di prova</p>')
+        setEditorContent = vi.fn()
 
-function escapeHtml(value: string): string {
-    const div = document.createElement('div')
-    div.textContent = value
-    return div.innerHTML
-}
+        vi.clearAllMocks()
+    })
 
-function htmlToMarkdownText(html: string): string {
-    const div = document.createElement('div')
-    div.innerHTML = html
+    describe('text properties', () => {
+        it('should calculate word count correctly', () => {
+            noteContent.value = '<p>questo è un testo di prova</p>'
 
-    div.querySelectorAll('[data-ai-parent], [data-ai-child]').forEach((el) => {
-        if (el.previousSibling?.nodeType === Node.TEXT_NODE) {
-            el.previousSibling.textContent =
-                el.previousSibling.textContent?.replace(/[ \t]+$/, '') ?? ''
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            expect(composable.wordCount.value).toBe(6)
+        })
+
+        it('should calculate character count correctly', () => {
+            noteContent.value = '<p>ciao mondo</p>'
+
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            expect(composable.charCount.value).toBe(10)
+        })
+    })
+
+    describe('html utilities', () => {
+        it('should convert html to plain text while preserving paragraphs structure', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const result = composable.htmlToMarkdownText(`<div>testo di prova</div>\n<p>seconda riga</p>`)
+
+            expect(result).toBe('testo di prova\n\nseconda riga')
+        })
+
+        it('should escape html correctly', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const result = composable.escapeHtml(
+                '<script>alert("ciao")</script>'
+            )
+
+            expect(result).toBe(
+                '&lt;script&gt;alert("ciao")&lt;/script&gt;'
+            )
+        })
+
+        it('should strip ai markers correctly', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const html = `<div data-ai-parent="1"><span data-ai-content="true">contenuto AI</span></div>`
+
+            const result = composable.stripAiMarkers(html)
+
+            expect(result).toBe('contenuto AI')
+        })
+    })
+
+    describe('list formatting', () => {
+        it('should format unordered list correctly', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const result = composable.formatList(
+                'mele\npere',
+                'unordered_list'
+            )
+
+            expect(result).toBe('- mele\n- pere')
+        })
+
+        it('should format ordered list correctly', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const result = composable.formatList(
+                'primo elemento\nsecondo elemento',
+                'ordered_list'
+            )
+
+            expect(result).toBe(
+                '1. primo elemento\n2. secondo elemento'
+            )
+        })
+
+        it('should remove unordered list formatting when all lines are already formatted', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const result = composable.formatList(
+                '- mele\n- pere',
+                'unordered_list'
+            )
+
+            expect(result).toBe('mele\npere')
+        })
+
+        it('should remove ordered list formatting when all lines are already formatted', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const result = composable.formatList(
+                '1. primo elemento\n2. secondo elemento',
+                'ordered_list'
+            )
+
+            expect(result).toBe(
+                'primo elemento\nsecondo elemento'
+            )
+        })
+    })
+
+    describe('view mode', () => {
+        it('should set render view mode', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            composable.setViewMode('render')
+
+            expect(composable.viewMode.value).toBe('render')
+        })
+
+        it('should set split view mode', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            composable.setViewMode('split')
+
+            expect(composable.viewMode.value).toBe('split')
+        })
+
+        it('should set editor view mode', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            composable.setViewMode('editor')
+
+            expect(composable.viewMode.value).toBe('editor')
+        })
+    })
+
+    describe('ai actions', () => {
+        it('should call summarize action', async () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            await composable.handleAiRun({
+                action: 'summarize',
+                selectedText: 'testo da riassumere',
+                option: '',
+            })
+
+            expect(mockAi.summarize).toHaveBeenCalledWith(
+                'testo da riassumere'
+            )
+        })
+
+        it('should call translate action', async () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            await composable.handleAiRun({
+                action: 'translate',
+                selectedText: 'testo da tradurre',
+                option: 'en',
+            })
+
+            expect(mockAi.translate).toHaveBeenCalledWith(
+                'testo da tradurre',
+                'en'
+            )
+        })
+
+        it('should call rewrite action with styles', async () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            await composable.handleAiRun({
+                action: 'rewrite',
+                selectedText: 'testo da correggere',
+                option: 'grammar,lexicon',
+            })
+
+            expect(mockAi.rewrite).toHaveBeenCalledWith(
+                'testo da correggere',
+                ['grammar', 'lexicon']
+            )
+        })
+
+        it('should call correct hat function', async () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            await composable.handleAiRun({
+                action: 'hats',
+                selectedText: 'problema complesso',
+                option: 'blue',
+            })
+
+            expect(mockAi.bluehat).toHaveBeenCalledWith(
+                'problema complesso'
+            )
+        })
+
+        it('should show warning toast when ai returns error', async () => {
+            mockAi.error.value = 'errore simulato'
+
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            await composable.handleAiRun({
+                action: 'summarize',
+                selectedText: 'testo di prova',
+                option: '',
+            })
+
+            expect(warningToast).toHaveBeenCalledWith(
+                'Errore AI',
+                'errore simulato'
+            )
+        })
+    })
+
+    describe('editor interactions', () => {
+        it('should handle paste event correctly', () => {
+            document.execCommand = vi.fn()
+
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const preventDefault = vi.fn()
+
+            const event = {
+                preventDefault,
+                clipboardData: {
+                    getData: vi.fn().mockReturnValue('testo incollato'),
+                },
+            } as unknown as ClipboardEvent
+
+            composable.handlePaste(event)
+
+            expect(preventDefault).toHaveBeenCalled()
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                'testo incollato'
+            )
+        })
+
+        it('should call setEditorContent on editor input', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const editor = document.createElement('div')
+            editor.innerHTML = '<p>contenuto aggiornato</p>'
+
+            composable.setEditorRef(editor)
+            composable.handleEditorInput()
+
+            expect(setEditorContent).toHaveBeenCalledWith(
+                '<p>contenuto aggiornato</p>'
+            )
+        })
+    })
+    describe('applyFormat', () => {
+        beforeEach(() => {
+            Object.defineProperty(document, 'execCommand', {
+                value: vi.fn(),
+                writable: true,
+            })
+        })
+
+        const setupSelection = (testoSelezionato: string) => {
+            const mockRange = {
+                cloneRange: vi.fn(),
+            } as unknown as Range
+
+            vi.spyOn(window, 'getSelection').mockReturnValue({
+                rangeCount: 1,
+                toString: () => testoSelezionato,
+                getRangeAt: () => mockRange,
+                removeAllRanges: vi.fn(),
+                addRange: vi.fn(),
+            } as unknown as Selection)
         }
-        if (el.nextSibling?.nodeType === Node.TEXT_NODE) {
-            el.nextSibling.textContent =
-                el.nextSibling.textContent?.replace(/^[ \t]+/, '') ?? ''
-        }
-        el.querySelectorAll('[data-ai-retranslate]').forEach((button) => button.remove())
-        const content = el.querySelector('[data-ai-content]') as HTMLElement | null
-        el.replaceWith(document.createTextNode(content?.textContent || el.textContent || ''))
-    })
 
-    div.querySelectorAll('div, p, br').forEach((el) => {
-        el.after(document.createTextNode('\n'))
-    })
+        it('should apply bold formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
 
-    return (div.textContent || '')
-        .split('\n')
-        .map((line) => line.replace(/^[ \t]+/, ''))
-        .join('\n')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim()
-}
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
 
-function formatList(text: string, type: 'ordered_list' | 'unordered_list'): string {
-    const prefix =
-        type === 'unordered_list' ? /^(\s*)[-*]\s/ : /^(\s*)\d+\.\s/
-    const lines = text.split('\n')
-    const allHavePrefix = lines.every((line) => prefix.test(line))
-    return lines
-        .map((line, i) =>
-            allHavePrefix
-                ? line.replace(prefix, '$1')
-                : prefix.test(line)
-                    ? line
-                    : `${line.match(/^(\s*)/)?.[1] ?? ''}${type === 'unordered_list' ? '- ' : `${i + 1}. `
-                    }${line.trimStart()}`
-        )
-        .join('\n')
-}
+            setupSelection('testo in grassetto')
 
-function applyWrapper(text: string, start: string, end: string): string {
-    const alreadyWrapped = text.startsWith(start) && text.endsWith(end)
-    return alreadyWrapped
-        ? text.slice(start.length, text.length - end.length)
-        : `${start}${text}${end}`
-}
+            composable.applyFormat('bold')
 
-function formatLink(text: string): string {
-    const match = text.match(/^\[(.*?)\]\((.*?)\)$/)
-    return match ? match[1] : `[${text}](www.example.com)`
-}
-
-// ---- Test ----
-
-describe('escapeHtml', () => {
-    it('escapes angle brackets', () => {
-        expect(escapeHtml('<b>testo</b>')).toBe('&lt;b&gt;testo&lt;/b&gt;')
-    })
-
-    it('escapes ampersand', () => {
-        expect(escapeHtml('prova & test')).toBe('prova &amp; test')
-    })
-})
-
-
-describe('htmlToMarkdownText', () => {
-    it('strips basic HTML tags returning plain text', () => {
-        expect(htmlToMarkdownText('<p>testo</p>')).toBe('testo')
-    })
-
-    it('collapses more than two consecutive newlines into two', () => {
-        expect(htmlToMarkdownText('<p>inizio</p><p></p><p></p><p>fine</p>')).not.toMatch(/\n{3,}/)
-    })
-
-    it('replaces ai-child block with its content', () => {
-        const html = `
-      <div data-ai-child="abc">
-        <span data-ai-content="true">testo generato da AI</span>
-      </div>
-    `
-        expect(htmlToMarkdownText(html)).toBe('testo generato da AI')
-    })
-
-    it('replaces ai-parent block with its content', () => {
-        const html = `
-      <div data-ai-parent="xyz">
-        <span data-ai-content="true">testo originale selezionato</span>
-      </div>
-    `
-        expect(htmlToMarkdownText(html)).toBe('testo originale selezionato')
-    })
-
-    it('removes retranslate button from ai blocks', () => {
-        const html = `
-      <div data-ai-child="abc">
-        <span data-ai-content="true">risposta tradotta</span>
-        <button data-ai-retranslate="true">Ritraduci</button>
-      </div>
-    `
-        expect(htmlToMarkdownText(html)).not.toContain('Ritraduci')
-    })
-
-    it('trims leading whitespace from each line', () => {
-        expect(htmlToMarkdownText('<p>   riga con spazi iniziali</p>')).toBe('riga con spazi iniziali')
-    })
-
-    it('handles br tag as newline', () => {
-        expect(htmlToMarkdownText('prima riga<br>seconda riga')).toBe('prima riga\nseconda riga')
-    })
-})
-
-
-describe('formatList - unordered_list', () => {
-    it('adds bullet to plain lines', () => {
-        expect(formatList('mele\nbanane\narance', 'unordered_list')).toBe('- mele\n- banane\n- arance')
-    })
-
-    it('removes bullet when all lines already have it', () => {
-        expect(formatList('- mele\n- banane\n- arance', 'unordered_list')).toBe('mele\nbanane\narance')
-    })
-
-    it('adds bullet to lines without it', () => {
-        expect(formatList('- mele\nbanane', 'unordered_list')).toBe('- mele\n- banane')
-    })
-
-    it('preserves indentation when adding bullet', () => {
-        expect(formatList('  voce indentata', 'unordered_list')).toBe('  - voce indentata')
-    })
-
-    it('supports asterisk as existing bullet prefix', () => {
-        expect(formatList('* voce uno\n* voce due', 'unordered_list')).toBe('voce uno\nvoce due')
-    })
-})
-
-
-describe('formatList - ordered_list', () => {
-    it('adds numbered prefix to plain lines', () => {
-        expect(formatList('primo\nsecondo\nterzo', 'ordered_list')).toBe('1. primo\n2. secondo\n3. terzo')
-    })
-
-    it('removes numbered prefix when all lines already have it', () => {
-        expect(formatList('1. primo\n2. secondo\n3. terzo', 'ordered_list')).toBe('primo\nsecondo\nterzo')
-    })
-
-    it('preserves indentation when adding number', () => {
-        expect(formatList('  voce indentata', 'ordered_list')).toBe('  1. voce indentata')
-    })
-})
-
-
-describe('stripAiMarkers', () => {
-    const { stripAiMarkers } = useNoteEditorUI({
-        noteContent: ref(''),
-        setEditorContent: vi.fn(),
-    })
-
-    it('replaces ai-child with its plain text content', () => {
-        const html = `<div data-ai-child="abc"><span data-ai-content="true">risposta AI</span></div>`
-        expect(stripAiMarkers(html)).toBe('risposta AI')
-    })
-
-    it('replaces ai-parent with its plain text content', () => {
-        const html = `<div data-ai-parent="xyz"><span data-ai-content="true">testo originale</span></div>`
-        expect(stripAiMarkers(html)).toBe('testo originale')
-    })
-
-    it('removes retranslate buttons', () => {
-        const html = `
-      <div data-ai-child="abc">
-        <span data-ai-content="true">testo</span>
-        <button data-ai-retranslate="true">Ritraduci</button>
-      </div>
-    `
-        expect(stripAiMarkers(html)).not.toContain('Ritraduci')
-    })
-})
-
-
-describe('useNoteEditorUI - computed: wordCount and charCount', () => {
-    it('counts words correctly for a normal sentence', () => {
-        const { wordCount } = useNoteEditorUI({
-            noteContent: ref('<p>ciao come stai</p>'),
-            setEditorContent: vi.fn(),
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                '**testo in grassetto**'
+            )
         })
-        expect(wordCount.value).toBe(3)
-    })
 
-    it('counts zero words for whitespace only', () => {
-        const { wordCount } = useNoteEditorUI({
-            noteContent: ref('<p>   </p>'),
-            setEditorContent: vi.fn(),
+        it('should apply italic formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
+
+            setupSelection('testo in corsivo')
+
+            composable.applyFormat('italic')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                '*testo in corsivo*'
+            )
         })
-        expect(wordCount.value).toBe(0)
-    })
 
-    it('handles multiple spaces between words', () => {
-        const { wordCount } = useNoteEditorUI({
-            noteContent: ref('<p>parola   doppio   spazio</p>'),
-            setEditorContent: vi.fn(),
+        it('should apply underline formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
+
+            setupSelection('testo sottolineato')
+
+            composable.applyFormat('underline')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                '<u>testo sottolineato</u>'
+            )
         })
-        expect(wordCount.value).toBe(3)
-    })
 
-    it('counts characters correctly', () => {
-        const { charCount } = useNoteEditorUI({
-            noteContent: ref('<p>ciao</p>'),
-            setEditorContent: vi.fn(),
+        it('should apply strikethrough formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
+
+            setupSelection('testo barrato')
+
+            composable.applyFormat('strikethrough')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                '~~testo barrato~~'
+            )
         })
-        expect(charCount.value).toBe(4)
-    })
-})
 
+        it('should apply comment formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
 
-describe('useNoteEditorUI - applyFormat: wrapper logic', () => {
-    it('wraps text in bold markers', () => {
-        expect(applyWrapper('testo importante', '**', '**')).toBe('**testo importante**')
-    })
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
 
-    it('unwraps text already in bold', () => {
-        expect(applyWrapper('**testo in grassetto**', '**', '**')).toBe('testo in grassetto')
-    })
+            setupSelection('commento di prova')
 
-    it('wraps text in italic markers', () => {
-        expect(applyWrapper('testo corsivo', '*', '*')).toBe('*testo corsivo*')
-    })
+            composable.applyFormat('comment')
 
-    it('unwraps text already in italic', () => {
-        expect(applyWrapper('*testo corsivo*', '*', '*')).toBe('testo corsivo')
-    })
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                '<!--[Inizio commento]\ncommento di prova\n[Fine commento]-->'
+            )
+        })
 
-    it('wraps text in strikethrough markers', () => {
-        expect(applyWrapper('testo barrato', '~~', '~~')).toBe('~~testo barrato~~')
-    })
+        it('should apply link formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
 
-    it('unwraps text already in strikethrough', () => {
-        expect(applyWrapper('~~testo barrato~~', '~~', '~~')).toBe('testo barrato')
-    })
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
 
-    it('wraps text in underline tags', () => {
-        expect(applyWrapper('testo sottolineato', '<u>', '</u>')).toBe('<u>testo sottolineato</u>')
-    })
+            setupSelection('sito di prova')
 
-    it('unwraps text already in underline tags', () => {
-        expect(applyWrapper('<u>testo sottolineato</u>', '<u>', '</u>')).toBe('testo sottolineato')
-    })
+            composable.applyFormat('link')
 
-    it('wraps text in comment markers', () => {
-        expect(applyWrapper('nota interna', '<!--[Inizio commento]\n', '\n[Fine commento]-->')).toBe('<!--[Inizio commento]\nnota interna\n[Fine commento]-->')
-    })
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                '[sito di prova](www.example.com)'
+            )
+        })
 
-    it('unwraps text already in comment markers', () => {
-        expect(applyWrapper('<!--[Inizio commento]\nnota interna\n[Fine commento]-->', '<!--[Inizio commento]\n', '\n[Fine commento]-->')).toBe('nota interna')
-    })
-})
+        it('should remove existing bold formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
 
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
 
-describe('useNoteEditorUI - link format logic', () => {
-    it('wraps plain text as markdown link', () => {
-        expect(formatLink('visita il sito')).toBe('[visita il sito](www.example.com)')
-    })
+            setupSelection('**testo già formattato**')
 
-    it('unwraps an existing markdown link returning only the label', () => {
-        expect(formatLink('[testo del link](link.com)')).toBe('testo del link')
+            composable.applyFormat('bold')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                'testo già formattato'
+            )
+        })
+
+        it('should remove existing italic formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
+
+            setupSelection('*testo già in corsivo*')
+
+            composable.applyFormat('italic')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                'testo già in corsivo'
+            )
+        })
+
+        it('should remove existing underline formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
+
+            setupSelection('<u>testo già sottolineato</u>')
+
+            composable.applyFormat('underline')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                'testo già sottolineato'
+            )
+        })
+
+        it('should remove existing strikethrough formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
+
+            setupSelection('~~testo già barrato~~')
+
+            composable.applyFormat('strikethrough')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                'testo già barrato'
+            )
+        })
+
+        it('should remove existing comment formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
+
+            setupSelection(
+                '<!--[Inizio commento]\ncommento esistente\n[Fine commento]-->'
+            )
+
+            composable.applyFormat('comment')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                'commento esistente'
+            )
+        })
+
+        it('should remove existing link formatting', () => {
+            const composable = useNoteEditorUI({
+                noteContent,
+                setEditorContent,
+            })
+
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
+
+            setupSelection('[documentazione](https://example.com)')
+
+            composable.applyFormat('link')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertText',
+                false,
+                'documentazione'
+            )
+        })
     })
 })
