@@ -1022,7 +1022,10 @@ describe('useNoteEditorUI', () => {
             })
         })
     })
-    
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // retranslateAiBlock
+    // ─────────────────────────────────────────────────────────────────────────
     describe('retranslateAiBlock', () => {
         /**
          * Costruisce un editor DOM con un blocco AI parent + uno o più child
@@ -1080,6 +1083,7 @@ describe('useNoteEditorUI', () => {
             buildEditor(composable)
 
             const child = document.createElement('div')
+            // nessun data-ai-child né data-ai-lang
 
             await composable.retranslateAiBlock(child)
 
@@ -1092,6 +1096,7 @@ describe('useNoteEditorUI', () => {
 
             const child = document.createElement('div')
             child.setAttribute('data-ai-child', 'grp1')
+            // nessun data-ai-lang
 
             await composable.retranslateAiBlock(child)
 
@@ -1184,6 +1189,7 @@ describe('useNoteEditorUI', () => {
             await composable.retranslateAiBlock(child)
 
             expect(warningToast).toHaveBeenCalledWith('Errore AI', 'errore di traduzione')
+            // il contenuto NON deve essere aggiornato
             const content = child.querySelector('[data-ai-content]') as HTMLElement
             expect(content.textContent).toBe('vecchia traduzione')
         })
@@ -1192,6 +1198,7 @@ describe('useNoteEditorUI', () => {
             const composable = useNoteEditorUI({ noteContent, setEditorContent })
             const editor = buildEditor(composable)
 
+            // Source child: è il blocco "di partenza" per la catena di traduzione
             const sourceChild = document.createElement('div')
             sourceChild.setAttribute('data-ai-child', 'src-child')
             const sourceContent = document.createElement('span')
@@ -1199,6 +1206,7 @@ describe('useNoteEditorUI', () => {
             sourceContent.innerText = 'testo sorgente figlio'
             sourceChild.appendChild(sourceContent)
 
+            // Child che punta al source child
             const child = buildChild('grp1', 'ja', { sourceChildId: 'src-child' })
 
             editor.appendChild(sourceChild)
@@ -1222,7 +1230,7 @@ describe('useNoteEditorUI', () => {
 
         it('should do nothing if parent block is not found in DOM', async () => {
             const composable = useNoteEditorUI({ noteContent, setEditorContent })
-            buildEditor(composable)
+            buildEditor(composable) // editor vuoto, nessun parent
 
             const child = buildChild('grp-inesistente', 'pt')
 
@@ -1235,7 +1243,7 @@ describe('useNoteEditorUI', () => {
             const composable = useNoteEditorUI({ noteContent, setEditorContent })
             const editor = buildEditor(composable)
 
-            const parent = buildParent('grp1', '   ')
+            const parent = buildParent('grp1', '   ') // solo spazi
             const child = buildChild('grp1', 'en')
             editor.appendChild(parent)
             editor.appendChild(child)
@@ -1243,6 +1251,328 @@ describe('useNoteEditorUI', () => {
             await composable.retranslateAiBlock(child)
 
             expect(mockAi.translate).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('insertAiResult', () => {
+        /** Crea un editor reale nel DOM, lo registra nel composable e lo restituisce. */
+        const buildEditor = (composable: ReturnType<typeof useNoteEditorUI>) => {
+            const editor = document.createElement('div')
+            composable.setEditorRef(editor)
+            return editor
+        }
+
+        /**
+         * Simula una selezione su un nodo di testo all'interno dell'editor.
+         * Restituisce il Range reale creato così che il composable possa clonarlo.
+         */
+        const setupSelection = (textNode: Text, startOffset = 0, endOffset?: number) => {
+            const range = document.createRange()
+            range.setStart(textNode, startOffset)
+            range.setEnd(textNode, endOffset ?? textNode.length)
+
+            vi.spyOn(window, 'getSelection').mockReturnValue({
+                rangeCount: 1,
+                toString: () => textNode.textContent?.slice(startOffset, endOffset ?? textNode.length) ?? '',
+                getRangeAt: () => range,
+                removeAllRanges: vi.fn(),
+                addRange: vi.fn(),
+                anchorNode: textNode,
+                anchorOffset: startOffset,
+            } as unknown as Selection)
+
+            return range
+        }
+
+        /**
+         * Prepara il composable con editor, selezione e aiResult già valorizzati.
+         * Usa openAiPanel internamente così selectedRange viene impostato correttamente.
+         */
+        const prepare = (
+            aiResultText = 'risultato AI',
+            selectedTextValue = 'testo selezionato',
+            action: Parameters<ReturnType<typeof useNoteEditorUI>['openAiPanel']>[0] = 'summarize',
+        ) => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const textNode = document.createTextNode(selectedTextValue)
+            editor.appendChild(textNode)
+
+            setupSelection(textNode)
+
+            composable.openAiPanel(action)
+            composable.aiResult.value = aiResultText
+            return { composable, editor, textNode }
+        }
+
+        beforeEach(() => {
+            mockAi.result.value = 'risultato AI'
+            mockAi.error.value = ''
+        })
+
+        it('should do nothing if editorRef is not set', () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            composable.aiResult.value = 'risultato'
+
+            expect(() => composable.insertAiResult('after')).not.toThrow()
+            expect(document.execCommand).not.toHaveBeenCalled()
+        })
+
+        it('should do nothing if selectedRange is null', () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            buildEditor(composable)
+            composable.aiResult.value = 'risultato'
+
+            expect(() => composable.insertAiResult('after')).not.toThrow()
+            expect(document.execCommand).not.toHaveBeenCalled()
+        })
+
+        it('should do nothing if aiResult is empty', () => {
+            const { composable } = prepare()
+            composable.aiResult.value = ''
+
+            composable.insertAiResult('after')
+
+            expect(document.execCommand).not.toHaveBeenCalled()
+        })
+
+        it('should call execCommand insertHTML in mode after', () => {
+            const { composable } = prepare()
+
+            composable.insertAiResult('after')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertHTML',
+                false,
+                expect.stringContaining('data-ai-parent')
+            )
+        })
+
+        it('should include parent block and child block in html for mode after', () => {
+            const { composable } = prepare()
+
+            composable.insertAiResult('after')
+
+            const call = (document.execCommand as ReturnType<typeof vi.fn>).mock.calls[0]
+            const html: string = call[2]
+            expect(html).toContain('data-ai-parent')
+            expect(html).toContain('data-ai-child')
+        })
+
+        it('should close ai panel after insert in mode after', () => {
+            const { composable } = prepare()
+
+            composable.insertAiResult('after')
+
+            expect(composable.isAiOpen.value).toBe(false)
+            expect(composable.aiAction.value).toBe(null)
+        })
+
+        it('should call setEditorContent after insert in mode after', () => {
+            const { composable } = prepare()
+
+            composable.insertAiResult('after')
+
+            expect(setEditorContent).toHaveBeenCalled()
+        })
+
+        it('should swap parent and child order in html for mode before', () => {
+            const { composable } = prepare()
+
+            composable.insertAiResult('before')
+
+            const call = (document.execCommand as ReturnType<typeof vi.fn>).mock.calls[0]
+            const html: string = call[2]
+
+            const childPos = html.indexOf('data-ai-child')
+            const parentPos = html.indexOf('data-ai-parent')
+            expect(childPos).toBeLessThan(parentPos)
+        })
+
+        it('should include only child block (no parent) in html for mode replace', () => {
+            const { composable } = prepare()
+
+            composable.insertAiResult('replace')
+
+            const call = (document.execCommand as ReturnType<typeof vi.fn>).mock.calls[0]
+            const html: string = call[2]
+
+            expect(html).toContain('data-ai-child')
+            const parentMatch = html.match(/data-ai-parent/)
+            expect(parentMatch).toBeNull()
+        })
+
+        it('should close ai panel after insert in mode replace', () => {
+            const { composable } = prepare()
+
+            composable.insertAiResult('replace')
+
+            expect(composable.isAiOpen.value).toBe(false)
+        })
+
+        it('should call execCommand with parentHtml and insertAdjacentHTML for mode bottom', () => {
+            const { composable, editor } = prepare()
+
+            const insertAdjacentHTMLSpy = vi.spyOn(editor, 'insertAdjacentHTML')
+
+            composable.insertAiResult('bottom')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertHTML',
+                false,
+                expect.stringContaining('data-ai-parent')
+            )
+
+            expect(insertAdjacentHTMLSpy).toHaveBeenCalledWith(
+                'beforeend',
+                expect.stringContaining('data-ai-child')
+            )
+        })
+
+        it('should close ai panel after insert in mode bottom', () => {
+            const { composable, editor } = prepare()
+            vi.spyOn(editor, 'insertAdjacentHTML')
+
+            composable.insertAiResult('bottom')
+
+            expect(composable.isAiOpen.value).toBe(false)
+        })
+
+        it('should use escapeHtml result in execCommand when selection is inside an existing aiBlock (replace)', () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const aiBlock = document.createElement('div')
+            aiBlock.setAttribute('data-ai-parent', 'existing-group')
+            const textNode = document.createTextNode('testo dentro ai block')
+            aiBlock.appendChild(textNode)
+            editor.appendChild(aiBlock)
+
+            setupSelection(textNode)
+            composable.openAiPanel('summarize')
+            composable.aiResult.value = 'nuovo risultato'
+
+            composable.insertAiResult('replace')
+
+            expect(document.execCommand).toHaveBeenCalledWith(
+                'insertHTML',
+                false,
+                expect.any(String)
+            )
+            expect(composable.isAiOpen.value).toBe(false)
+        })
+
+        it('should use insertAdjacentHTML on aiBlock for mode before when inside existing aiBlock', () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const aiBlock = document.createElement('div')
+            aiBlock.setAttribute('data-ai-parent', 'existing-group')
+            const textNode = document.createTextNode('testo dentro ai block')
+            aiBlock.appendChild(textNode)
+            editor.appendChild(aiBlock)
+
+            const insertAdjacentHTMLSpy = vi.spyOn(aiBlock, 'insertAdjacentHTML')
+
+            setupSelection(textNode)
+            composable.openAiPanel('summarize')
+            composable.aiResult.value = 'nuovo risultato'
+
+            composable.insertAiResult('before')
+
+            expect(insertAdjacentHTMLSpy).toHaveBeenCalledWith(
+                'beforebegin',
+                expect.stringContaining('data-ai-child')
+            )
+            expect(composable.isAiOpen.value).toBe(false)
+        })
+
+        it('should use insertAdjacentHTML on aiBlock for mode after when inside existing aiBlock', () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const aiBlock = document.createElement('div')
+            aiBlock.setAttribute('data-ai-parent', 'existing-group')
+            const textNode = document.createTextNode('testo dentro ai block')
+            aiBlock.appendChild(textNode)
+            editor.appendChild(aiBlock)
+
+            const insertAdjacentHTMLSpy = vi.spyOn(aiBlock, 'insertAdjacentHTML')
+
+            setupSelection(textNode)
+            composable.openAiPanel('summarize')
+            composable.aiResult.value = 'nuovo risultato'
+
+            composable.insertAiResult('after')
+
+            expect(insertAdjacentHTMLSpy).toHaveBeenCalledWith(
+                'afterend',
+                expect.stringContaining('data-ai-child')
+            )
+            expect(composable.isAiOpen.value).toBe(false)
+        })
+
+        it('should wrap selected text in comment markers for distant writing action', () => {
+            const { composable } = prepare('risultato AI', 'argomento da sviluppare', 'distant writing')
+
+            composable.insertAiResult('after')
+
+            const call = (document.execCommand as ReturnType<typeof vi.fn>).mock.calls[0]
+            const html: string = call[2]
+
+            expect(html).toContain('[Inizio commento]')
+            expect(html).toContain('[Fine commento]')
+        })
+
+        it('should include lang attribute in child block for translate action', () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const textNode = document.createTextNode('testo da tradurre')
+            editor.appendChild(textNode)
+            setupSelection(textNode)
+
+            composable.openAiPanel('translate')
+            composable.languageMode.value = 'fr'
+            composable.aiResult.value = 'texte traduit'
+
+            composable.insertAiResult('after')
+
+            const call = (document.execCommand as ReturnType<typeof vi.fn>).mock.calls[0]
+            const html: string = call[2]
+
+            expect(html).toContain('data-ai-lang="fr"')
+        })
+
+        it('should include retranslate button in child block for translate action', () => {
+            const composable = useNoteEditorUI({ noteContent, setEditorContent })
+            const editor = buildEditor(composable)
+
+            const textNode = document.createTextNode('testo da tradurre')
+            editor.appendChild(textNode)
+            setupSelection(textNode)
+
+            composable.openAiPanel('translate')
+            composable.aiResult.value = 'texte traduit'
+
+            composable.insertAiResult('after')
+
+            const call = (document.execCommand as ReturnType<typeof vi.fn>).mock.calls[0]
+            const html: string = call[2]
+
+            expect(html).toContain('data-ai-retranslate')
+        })
+
+        it('should append exit block (data-normal-block) in html for mode after', () => {
+            const { composable } = prepare()
+
+            composable.insertAiResult('after')
+
+            const call = (document.execCommand as ReturnType<typeof vi.fn>).mock.calls[0]
+            const html: string = call[2]
+
+            expect(html).toContain('data-normal-block="true"')
         })
     })
 })
