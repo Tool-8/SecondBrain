@@ -252,7 +252,7 @@ export function useNoteEditorUI(options: {
             el.replaceWith(document.createTextNode(content?.textContent || el.textContent || ''))
         })
 
-        return div.innerText
+        return div.textContent ?? ''
     }
 
     function createAiGroupId() {
