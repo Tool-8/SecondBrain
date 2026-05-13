@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { AxiosInstance } from 'axios';
 
 const apiClient: AxiosInstance = axios.create({
-    baseURL: "http://localhost:8080/api/",
+    baseURL: "/api/",
     timeout: 10000,  // 10 secondi
     validateStatus: (status) => {
         return status >= 200 && status <= 399;
