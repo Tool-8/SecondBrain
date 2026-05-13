@@ -18,6 +18,10 @@ git clone https://github.com/Tool-8/SecondBrain.git
 ### 2. Configurazione ambiente
 Nella root del progetto, crea un file .env con il seguente contenuto:
 ```env
+APP_PORT = 8080
+APP_NAME = SecondBrain
+APP_ENV = production
+APP_DEBUG = false
 APP_URL = http://localhost:8080
 APP_KEY =
 SESSION_DRIVER = database
