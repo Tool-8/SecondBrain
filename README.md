@@ -18,7 +18,7 @@ git clone https://github.com/Tool-8/SecondBrain.git
 ### 2. Configurazione ambiente
 Nella root del progetto, crea un file .env con il seguente contenuto:
 ```env
-APP_URL = http :// localhost :8080
+APP_URL = http://localhost:8080
 APP_KEY =
 SESSION_DRIVER = database
 CACHE_STORE = database
@@ -32,11 +32,11 @@ MAIL_PORT =2525
 MAIL_USERNAME = null
 MAIL_PASSWORD = null
 MAIL_ENCRYPTION = null
-MAIL_FROM_ADDRESS = hello@example . com
+MAIL_FROM_ADDRESS = hello@example.com
 MAIL_FROM_NAME = SecondBrain
-LLM_BASE_URL = < URL_BASE_LLM >
-LLM_API_KEY = < TUA_CHIAVE_API_KEY >
-LLM_MODEL = < MODELLO_LLM >
+LLM_BASE_URL = <URL_BASE_LLM>
+LLM_API_KEY = <TUA_CHIAVE_API_KEY>
+LLM_MODEL = <MODELLO_LLM>
 ```
 
 Sostituire i valori di <URL_BASE_LLM>, <TUA_CHIAVE_API_KEY> e <MODELLO_LLM> con quelli forniti dall'azienda Zucchetti.
