@@ -16,13 +16,13 @@ const actions: ContextAction<void>[] = [
     {
         label: 'Esporta in MD',
         handler: async () => {
-            await await exportTheNote('md');
+            await exportTheNote('md');
         },
     },
     {
         label: 'Esporta in HTML',
         handler: async () => {
-            await await exportTheNote('html');
+            await exportTheNote('html');
         },
     },
 ];

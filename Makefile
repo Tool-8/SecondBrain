@@ -4,6 +4,7 @@ DOCKER_GID := $(shell id -g)
 BASE_COMPOSE = DOCKER_UID=$(DOCKER_UID) DOCKER_GID=$(DOCKER_GID) docker compose -f docker-compose.yml
 DEV_COMPOSE = $(BASE_COMPOSE) -f docker-compose.dev.yml
 PROD_COMPOSE = $(BASE_COMPOSE) -f docker-compose.prod.yml
+DEPLOY_COMPOSE = DOCKER_UID=$(DOCKER_UID) DOCKER_GID=$(DOCKER_GID) docker compose -f docker-compose.deploy.yml
 
 up:
 	$(DEV_COMPOSE) up -d --build
@@ -49,3 +50,42 @@ npm-install:
 
 composer-install:
 	$(DEV_COMPOSE) exec app composer install
+
+deploy:
+	$(DEPLOY_COMPOSE) up -d --build
+
+deploy-down:
+	$(DEPLOY_COMPOSE) down
+
+deploy-build:
+	$(DEPLOY_COMPOSE) build
+
+deploy-build-no-cache:
+	$(DEPLOY_COMPOSE) build --no-cache
+
+deploy-logs:
+	$(DEPLOY_COMPOSE) logs -f
+
+deploy-ps:
+	$(DEPLOY_COMPOSE) ps
+
+deploy-bash:
+	$(DEPLOY_COMPOSE) exec app sh
+
+deploy-restart:
+	$(DEPLOY_COMPOSE) restart
+
+deploy-migrate:
+	$(DEPLOY_COMPOSE) exec app php artisan migrate --force
+
+deploy-clear:
+	$(DEPLOY_COMPOSE) exec app php artisan optimize:clear
+
+deploy-key:
+	$(DEPLOY_COMPOSE) run --rm app php artisan key:generate --show
+
+deploy-front-build-check:
+	docker build -f docker/deploy/Dockerfile --target frontend .
+
+deploy-back-build-check:
+	docker build -f docker/deploy/Dockerfile --target vendor .

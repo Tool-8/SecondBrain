@@ -4,13 +4,13 @@ import { onClickOutside } from '@vueuse/core';
 import type { ContextAction } from '@/types/contextaction';
 
 const props = defineProps<{
-    actions: ContextAction[];
+    actions: ContextAction<any>[];
     x: number;
     y: number;
 }>();
 
 const emit = defineEmits<{
-    'action-clicked': [action: ContextAction];
+    'action-clicked': [action: ContextAction<any>];
     close: [];
 }>();
 
