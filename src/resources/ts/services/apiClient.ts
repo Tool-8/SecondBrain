@@ -2,8 +2,8 @@ import axios from 'axios';
 import type { AxiosInstance } from 'axios';
 
 const apiClient: AxiosInstance = axios.create({
-    baseURL: "/api/",
-    timeout: 10000,  // 10 secondi
+    baseURL: '/api/',
+    timeout: 10000, // 10 secondi
     validateStatus: (status) => {
         return status >= 200 && status <= 399;
     },
@@ -13,10 +13,10 @@ const apiClient: AxiosInstance = axios.create({
 });
 
 apiClient.interceptors.response.use(
-    response => response,
+    (response) => response,
 
     // Converte il blob in json se il backend ritorna un errore
-    async error => {
+    async (error) => {
         if (error.response?.data instanceof Blob) {
             const text = await error.response.data.text();
             try {
@@ -27,6 +27,6 @@ apiClient.interceptors.response.use(
         }
         return Promise.reject(error);
     }
-)
+);
 
 export default apiClient;

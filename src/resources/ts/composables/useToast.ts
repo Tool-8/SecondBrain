@@ -15,41 +15,65 @@ const defaultErrorTimeout = 1000 * 60 * 60; // 1 ora
 const toasts = ref<Toast[]>([]);
 
 export function useToast() {
-
-    const addToast = (title: string, message: string, type: ToastType = 'info'): Toast => ({
-        id: Date.now(),  // id univoco
+    const addToast = (
+        title: string,
+        message: string,
+        type: ToastType = 'info'
+    ): Toast => ({
+        id: Date.now(), // id univoco
         title,
         message,
         type,
     });
 
-    function updateState(title: string, message: string, type: ToastType = 'info', timeout: number = defaultTimeout) {
+    function updateState(
+        title: string,
+        message: string,
+        type: ToastType = 'info',
+        timeout: number = defaultTimeout
+    ) {
         const toast = addToast(title, message, type);
 
         toasts.value.push(toast);
 
         setTimeout(() => {
-            toasts.value = toasts.value.filter(t => t.id !== toast.id);
+            toasts.value = toasts.value.filter((t) => t.id !== toast.id);
         }, timeout);
     }
 
     function removeToast(id: number) {
-        toasts.value = toasts.value.filter(t => t.id !== id);
+        toasts.value = toasts.value.filter((t) => t.id !== id);
     }
 
-    function successToast(title: string, message: string, timeout: number = defaultTimeout) {
+    function successToast(
+        title: string,
+        message: string,
+        timeout: number = defaultTimeout
+    ) {
         updateState(title, message, 'success', timeout);
     }
 
-    function errorToast(title: string, message: string, timeout: number = defaultErrorTimeout) {
+    function errorToast(
+        title: string,
+        message: string,
+        timeout: number = defaultErrorTimeout
+    ) {
         updateState(title, message, 'error', timeout);
     }
 
-    function warningToast(title: string, message: string, timeout: number = defaultTimeout) {
+    function warningToast(
+        title: string,
+        message: string,
+        timeout: number = defaultTimeout
+    ) {
         updateState(title, message, 'warning', timeout);
     }
 
-    function infoToast(title: string, message: string, timeout: number = defaultTimeout) {
+    function infoToast(
+        title: string,
+        message: string,
+        timeout: number = defaultTimeout
+    ) {
         updateState(title, message, 'info', timeout);
     }
 
@@ -59,7 +83,6 @@ export function useToast() {
         successToast,
         warningToast,
         errorToast,
-        infoToast
-    }
-
+        infoToast,
+    };
 }

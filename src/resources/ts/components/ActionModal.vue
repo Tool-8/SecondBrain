@@ -2,7 +2,14 @@
 import BaseModal from '@/components/layout/BaseModal.vue';
 import { useModals } from '@/composables/useModals';
 
-const { RenamePromise, DeletePromise, ClonePromise, SavePromise, DiscardPromise, SaveAsPromise } = useModals();
+const {
+    RenamePromise,
+    DeletePromise,
+    ClonePromise,
+    SavePromise,
+    DiscardPromise,
+    SaveAsPromise,
+} = useModals();
 </script>
 
 <template>
@@ -181,7 +188,8 @@ const { RenamePromise, DeletePromise, ClonePromise, SavePromise, DiscardPromise,
             <template #body>
                 <div class="mt-4">
                     <p class="text-pretty text-gray-700 dark:text-gray-200">
-                        Ci sono delle modifiche alla nota. Vuoi salvarle prima di uscire?
+                        Ci sono delle modifiche alla nota. Vuoi salvarle prima
+                        di uscire?
                     </p>
                 </div>
             </template>
@@ -207,7 +215,6 @@ const { RenamePromise, DeletePromise, ClonePromise, SavePromise, DiscardPromise,
             </template>
         </BaseModal>
     </DiscardPromise>
-
 </template>
 
 <style scoped></style>

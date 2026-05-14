@@ -6,10 +6,10 @@ const { toasts, removeToast } = useToast();
 
 <template>
     <div class="fixed top-3 right-3 z-100 w-90">
-        <TransitionGroup 
-            name="toastlist" 
+        <TransitionGroup
+            name="toastlist"
             tag="ul"
-            class="flex flex-col gap-3" 
+            class="flex flex-col gap-3"
             enter-active-class="transition-all duration-300 ease-out"
             enter-from-class="translate-x-full opacity-0"
             enter-to-class="translate-x-0 opacity-100"

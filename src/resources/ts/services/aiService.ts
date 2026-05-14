@@ -18,7 +18,7 @@ export type AiLang = 'it' | 'en' | 'fr' | 'de' | 'es' | 'pt';
 
 export interface AiOptions {
     style?: [AiTone, ...AiTone[]];
-    lang?:  AiLang;
+    lang?: AiLang;
 }
 
 export const aiService = {
@@ -27,19 +27,24 @@ export const aiService = {
         action: AiAction,
         options: AiOptions = {}
     ): Promise<string> => {
-        const url = action === 'distant writing'
-            ? '/llm/distant-writing'
-            : action.endsWith('hat')
-                ? `/llm/hat/${action}`
-                : `/llm/${action}`;
+        const url =
+            action === 'distant writing'
+                ? '/llm/distant-writing'
+                : action.endsWith('hat')
+                  ? `/llm/hat/${action}`
+                  : `/llm/${action}`;
 
         return serviceHandler(() =>
-            apiClient.post(url, { content, ...options })
-                .then(response => response.data.result)
+            apiClient
+                .post(url, { content, ...options })
+                .then((response) => response.data.result)
         );
     },
 
-    translate: async (content: string, lang: AiLang = 'en'): Promise<string> => {
+    translate: async (
+        content: string,
+        lang: AiLang = 'en'
+    ): Promise<string> => {
         return aiService.process(content, 'translate', { lang });
     },
 
@@ -47,7 +52,10 @@ export const aiService = {
         return aiService.process(content, 'summarize');
     },
 
-    rewrite: async (content: string, style: [AiTone, ...AiTone[]]): Promise<string> => {
+    rewrite: async (
+        content: string,
+        style: [AiTone, ...AiTone[]]
+    ): Promise<string> => {
         return aiService.process(content, 'rewrite', { style });
     },
 

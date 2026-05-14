@@ -9,7 +9,7 @@ import { provideNoteEditor } from '@/composables/useNoteEditor';
 import { useNoteEditorUI } from '@/composables/useNoteEditorUI';
 import { useModals } from '@/composables/useModals';
 
-const { DiscardPromise } = useModals()
+const { DiscardPromise } = useModals();
 
 const {
     noteName,
@@ -60,7 +60,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 
     if (response === 'save') {
         await saveTheNote(true);
-        if(isDirty.value) {
+        if (isDirty.value) {
             return next(false);
         }
         next();
@@ -72,15 +72,17 @@ onBeforeRouteLeave(async (to, from, next) => {
 });
 
 function handleEditorClick(event: MouseEvent) {
-    const target = event.target as HTMLElement
+    const target = event.target as HTMLElement;
 
-    const button = target.closest('[data-ai-retranslate]') as HTMLElement | null
-    if (!button) return
+    const button = target.closest(
+        '[data-ai-retranslate]'
+    ) as HTMLElement | null;
+    if (!button) return;
 
-    const child = button.closest('[data-ai-child]') as HTMLElement | null
-    if (!child) return
+    const child = button.closest('[data-ai-child]') as HTMLElement | null;
+    if (!child) return;
 
-    retranslateAiBlock(child)
+    retranslateAiBlock(child);
 }
 </script>
 
@@ -136,11 +138,9 @@ function handleEditorClick(event: MouseEvent) {
         :rewrite-style="rewriteStyle"
         :language-mode="languageMode"
         @close="closeAiPanel"
-
         @update:hatMode="hatMode = $event"
         @update:languageMode="languageMode = $event"
         @update:rewriteStyle="rewriteStyle = $event"
-
         @run="handleAiRun"
         @insert="insertAiResult"
     />

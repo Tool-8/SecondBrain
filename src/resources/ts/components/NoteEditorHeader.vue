@@ -1,36 +1,48 @@
 <script setup lang="ts">
-import type { ViewMode } from '@/composables/useNoteEditorUI'
+import type { ViewMode } from '@/composables/useNoteEditorUI';
 import NoteEditorActions from '@/components/NoteEditorActions.vue';
 
 defineProps<{
-    name: string
-    isDirty: boolean
-    viewMode: ViewMode
-}>()
+    name: string;
+    isDirty: boolean;
+    viewMode: ViewMode;
+}>();
 
 const emit = defineEmits<{
-    'update:name': [value: string]
-    'change-view': [mode: ViewMode]
-    save: []
-}>()
+    'update:name': [value: string];
+    'change-view': [mode: ViewMode];
+}>();
 </script>
 
 <template>
-    <header class="grid grid-cols-1 md:grid-cols-3 gap-2 px-6 py-7 border-b-1 border-gray-100 dark:border-neutral-800">
+    <header
+        class="grid grid-cols-1 md:grid-cols-3 gap-2 px-6 py-7 border-b-1 border-gray-100 dark:border-neutral-800"
+    >
         <div class="w-full">
             <h1 class="font-bold text-2xl">
                 <input
                     :value="name"
                     placeholder="Inserisci nome.."
                     class="w-full truncate focus-within:outline-2 focus-within:outline-blue-400"
-                    @input="emit('update:name', ($event.target as HTMLInputElement).value)"
+                    @input="
+                        emit(
+                            'update:name',
+                            ($event.target as HTMLInputElement).value
+                        )
+                    "
                 />
             </h1>
 
-            <p class="font-jetbrains text-xs text-gray-500 dark:text-neutral-400">
+            <p
+                class="font-jetbrains text-xs text-gray-500 dark:text-neutral-400"
+            >
                 <span
                     class="w-2 h-2 inline-block rounded-3xl"
-                    :class="isDirty ? 'bg-yellow-500 dark:bg-yellow-400' : 'bg-green-500 dark:bg-green-400'"
+                    :class="
+                        isDirty
+                            ? 'bg-yellow-500 dark:bg-yellow-400'
+                            : 'bg-green-500 dark:bg-green-400'
+                    "
                 ></span>
 
                 <span>
@@ -67,6 +79,6 @@ const emit = defineEmits<{
             </button>
         </div>
 
-        <NoteEditorActions class="w-full"/>
+        <NoteEditorActions class="w-full" />
     </header>
 </template>
