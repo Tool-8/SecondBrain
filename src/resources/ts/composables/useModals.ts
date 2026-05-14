@@ -12,11 +12,15 @@ const ClonePromise = createTemplatePromise<string | null, [string]>({
     singleton: true,
 });
 
-const SavePromise = createTemplatePromise<"overwrite" | "save as" | "update" | null>({
+const SavePromise = createTemplatePromise<
+    'overwrite' | 'save as' | 'update' | null
+>({
     singleton: true,
 });
 
-const DiscardPromise = createTemplatePromise<"cancel" | "discard" | "save" | null>({
+const DiscardPromise = createTemplatePromise<
+    'cancel' | 'discard' | 'save' | null
+>({
     singleton: true,
 });
 
@@ -31,6 +35,6 @@ export function useModals() {
         ClonePromise,
         SavePromise,
         DiscardPromise,
-        SaveAsPromise
+        SaveAsPromise,
     };
 }

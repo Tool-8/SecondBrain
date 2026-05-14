@@ -1,7 +1,6 @@
 import apiClient from '@/services/apiClient';
 import type { Note, NoteWithContent, NoteAPI } from '@/types/note';
 import { serviceHandler } from '@/utils/serviceHandler';
-import { title } from 'node:process';
 import { AxiosResponse } from 'axios';
 
 function formatDate(timestamp: string): string {
@@ -38,7 +37,10 @@ function mapNoteWithContent(raw: NoteAPI): NoteWithContent {
     };
 }
 
-function noteBlobHandler(response: AxiosResponse<any>, format: 'pdf' | 'md' | 'html') {
+function noteBlobHandler(
+    response: AxiosResponse<any>,
+    format: 'pdf' | 'md' | 'html'
+) {
     const disposition = response.headers['content-disposition'];
     const filename =
         disposition?.split('filename=')[1]?.replace(/"/g, '') ??
@@ -58,64 +60,92 @@ export const noteService = {
     },
     get: async (id: string): Promise<NoteWithContent> => {
         return serviceHandler(() =>
-            apiClient.get('/notes/' + id).then(response => mapNoteWithContent(response.data))
+            apiClient
+                .get('/notes/' + id)
+                .then((response) => mapNoteWithContent(response.data))
         );
     },
     rename: async (id: string, newName: string): Promise<Note> => {
         return serviceHandler(() =>
-            apiClient.put('/notes/' + id, {
-                title: newName,
-            }).then(response => mapNote(response.data))
+            apiClient
+                .put('/notes/' + id, {
+                    title: newName,
+                })
+                .then((response) => mapNote(response.data))
         );
     },
     remove: async (id: string): Promise<void> => {
-        return serviceHandler(() =>
-            apiClient.delete('/notes/' + id));
+        return serviceHandler(() => apiClient.delete('/notes/' + id));
     },
     store: async (name: string, content: string): Promise<Note> => {
         return serviceHandler(() =>
-            apiClient.post('/notes', {
-                title: name,
-                content_md: content,
-            }).then(response => mapNote(response.data))
+            apiClient
+                .post('/notes', {
+                    title: name,
+                    content_md: content,
+                })
+                .then((response) => mapNote(response.data))
         );
     },
-    update: async (id: string, title: string, content: string): Promise<NoteWithContent> => {
+    update: async (
+        id: string,
+        title: string,
+        content: string
+    ): Promise<NoteWithContent> => {
         return serviceHandler(() =>
-            apiClient.put('/notes/' + id, {
-                title: title,
-                content_md: content,
-            }).then(response => mapNoteWithContent(response.data))
+            apiClient
+                .put('/notes/' + id, {
+                    title: title,
+                    content_md: content,
+                })
+                .then((response) => mapNoteWithContent(response.data))
         );
     },
-    export: async (id: string, format: 'pdf' | 'md' | 'html'): Promise<void> => {
+    export: async (
+        id: string,
+        format: 'pdf' | 'md' | 'html'
+    ): Promise<void> => {
         return serviceHandler(() =>
-            apiClient.get('/notes/export/' + id, {
-                params: {
-                    format,
-                },
-                responseType: 'blob',
-            }).then(response => noteBlobHandler(response, format))
+            apiClient
+                .get('/notes/export/' + id, {
+                    params: {
+                        format,
+                    },
+                    responseType: 'blob',
+                })
+                .then((response) => noteBlobHandler(response, format))
         );
     },
-    exportRaw: async (name: string, content: string, format: 'pdf' | 'md' | 'html'): Promise<void> => {
+    exportRaw: async (
+        name: string,
+        content: string,
+        format: 'pdf' | 'md' | 'html'
+    ): Promise<void> => {
         return serviceHandler(() =>
-            apiClient.post('/notes/export', {
-                title: name,
-                content: content,
-                format,
-            }, {
-                responseType: 'blob',
-            }).then(response => noteBlobHandler(response, format))
+            apiClient
+                .post(
+                    '/notes/export',
+                    {
+                        title: name,
+                        content: content,
+                        format,
+                    },
+                    {
+                        responseType: 'blob',
+                    }
+                )
+                .then((response) => noteBlobHandler(response, format))
         );
     },
     import: async (file: FormData): Promise<Note> => {
         return serviceHandler(() =>
-            apiClient.post('/notes/import', file, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            }).then(response => mapNote(response.data))
+            apiClient
+                .post('/notes/import', file, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                })
+                .then((response) => mapNote(response.data))
         );
-    }
+    },
 };

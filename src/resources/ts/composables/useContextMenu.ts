@@ -25,7 +25,7 @@ export function useContextMenu<T>() {
         isOpen.value = true;
         position.value = { x, y };
         selectedItem.value = item;
-    }
+    };
 
     const close = () => {
         isOpen.value = false;

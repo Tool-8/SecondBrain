@@ -25,15 +25,15 @@ const {
 } = useNotes();
 const { RenamePromise, DeletePromise, ClonePromise } = useModals();
 
-const animateCards = ref(false)
+const animateCards = ref(false);
 
 onMounted(async () => {
-    await fetchNotes()
+    await fetchNotes();
 
     requestAnimationFrame(() => {
-        animateCards.value = true
-    })
-})
+        animateCards.value = true;
+    });
+});
 const noteCount = computed(() => filteredNotes.value.length);
 const searchQuery = ref('');
 
@@ -210,7 +210,8 @@ const importEvent = async (event: Event) => {
                 class="archive-card-enter"
                 :style="{
                     animationDelay: index < 10 ? `${index * 70}ms` : '0ms',
-                    animationName: index < 10 ? 'archive-card-slide-up' : 'none',
+                    animationName:
+                        index < 10 ? 'archive-card-slide-up' : 'none',
                     opacity: index < 10 ? undefined : 1,
                     transform: index < 10 ? undefined : 'none',
                 }"

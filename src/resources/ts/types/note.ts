@@ -7,7 +7,7 @@ export type Note = {
 
 export type NoteWithContent = Note & {
     content: string;
-}
+};
 
 // JSON ritornato dal backend
 export type NoteAPI = {

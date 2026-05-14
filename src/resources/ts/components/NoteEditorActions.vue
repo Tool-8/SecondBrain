@@ -44,10 +44,7 @@ const handleAction = (action: ContextAction<void>) => {
 <template>
     <div class="flex flex-row gap-2 justify-end py-1">
         <div class="relative self-start">
-            <GeneralButton
-                label="Esporta"
-                @click="openExportMenu"
-            >
+            <GeneralButton label="Esporta" @click="openExportMenu">
                 <template #icon>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

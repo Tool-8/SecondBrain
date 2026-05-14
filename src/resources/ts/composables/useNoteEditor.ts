@@ -8,21 +8,22 @@ import router from '@/router';
 import { NoteNotUpdatedError } from '@/errors/noteErrors';
 
 function normalizeEditorHtml(html: string = '') {
-    const div = document.createElement('div')
-    div.innerHTML = html
+    const div = document.createElement('div');
+    div.innerHTML = html;
 
     div.querySelectorAll('[data-ai-parent], [data-ai-child]').forEach((el) => {
-        el.replaceWith(document.createTextNode(el.textContent || ''))
-    })
+        el.replaceWith(document.createTextNode(el.textContent || ''));
+    });
 
     return div.innerHTML
         .replace(/&nbsp;/g, ' ')
-        .replace(/\sdata-v-[^=]+=""/g, '')
+        .replace(/\sdata-v-[^=]+=""/g, '');
 }
 
 function useNoteEditorState() {
     const { errorToast } = useToast();
-    const { getNote, saveNote, storeNote, refreshNote, exportNoteFromRaw } = useNotes();
+    const { getNote, saveNote, storeNote, refreshNote, exportNoteFromRaw } =
+        useNotes();
     const route = useRoute();
 
     const noteContent = ref('');
@@ -38,15 +39,15 @@ function useNoteEditorState() {
 
     watch([noteContent, noteName], ([newContent, newName]) => {
         if (!originalNote.value) {
-            isDirty.value = true
-            return
+            isDirty.value = true;
+            return;
         }
 
         isDirty.value =
             normalizeEditorHtml(newContent) !==
-            normalizeEditorHtml(originalNote.value.content) ||
-            newName !== originalNote.value.name
-    })
+                normalizeEditorHtml(originalNote.value.content) ||
+            newName !== originalNote.value.name;
+    });
 
     function setEditorContent(html: string) {
         noteContent.value = html;
@@ -69,7 +70,12 @@ function useNoteEditorState() {
 
     const overwrite = async () => {
         if (!originalNote.value) return;
-        const updatedNote = await saveNote(originalNote.value, noteContent.value, noteName.value, true);
+        const updatedNote = await saveNote(
+            originalNote.value,
+            noteContent.value,
+            noteName.value,
+            true
+        );
         if (!updatedNote) return;
         (originalNote.value as Note) = updatedNote;
         updateNote();
@@ -114,14 +120,18 @@ function useNoteEditorState() {
         // Primo salvataggio nota
         if (!originalNote.value || !id) {
             await saveNew();
-            if(!originalNote.value || exit) return;
+            if (!originalNote.value || exit) return;
             await router.replace(`/notes/${originalNote.value.id}`);
             return;
         }
 
         // Salvataggio nota esistente
         try {
-            const updatedNote = await saveNote(originalNote.value, noteContent.value, noteName.value);
+            const updatedNote = await saveNote(
+                originalNote.value,
+                noteContent.value,
+                noteName.value
+            );
             if (!updatedNote) return;
             (originalNote.value as Note) = updatedNote;
             updateNote();

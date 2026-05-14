@@ -1,49 +1,48 @@
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue';
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme = 'light' | 'dark' | 'system';
 
-const theme = ref<Theme>('system')
+const theme = ref<Theme>('system');
 
 function prefersDark() {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
 function applyTheme(t: Theme) {
-    disableTransitionsTemporarily()
+    disableTransitionsTemporarily();
 
-    const isDark = t === 'dark' || (t === 'system' && prefersDark())
+    const isDark = t === 'dark' || (t === 'system' && prefersDark());
 
-    document.documentElement.classList.toggle('dark', isDark)
+    document.documentElement.classList.toggle('dark', isDark);
 }
 
 function disableTransitionsTemporarily() {
-    document.documentElement.classList.add('disable-transitions')
+    document.documentElement.classList.add('disable-transitions');
 
     window.setTimeout(() => {
-        document.documentElement.classList.remove('disable-transitions')
-    }, 50)
+        document.documentElement.classList.remove('disable-transitions');
+    }, 50);
 }
-
 
 export function useTheme() {
     onMounted(() => {
-        const saved = localStorage.getItem('theme') as Theme | null
+        const saved = localStorage.getItem('theme') as Theme | null;
 
-        theme.value = saved ?? 'system'
-        applyTheme(theme.value)
-    })
+        theme.value = saved ?? 'system';
+        applyTheme(theme.value);
+    });
 
     watch(theme, (newTheme) => {
-        localStorage.setItem('theme', newTheme)
-        applyTheme(newTheme)
-    })
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    });
 
     function setTheme(t: Theme) {
-        theme.value = t
+        theme.value = t;
     }
 
     return {
         theme,
-        setTheme
-    }
+        setTheme,
+    };
 }

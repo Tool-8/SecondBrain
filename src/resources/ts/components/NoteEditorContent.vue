@@ -1,42 +1,42 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from 'vue'
-import type { ViewMode } from '@/composables/useNoteEditorUI'
+import { nextTick, onMounted, ref, watch } from 'vue';
+import type { ViewMode } from '@/composables/useNoteEditorUI';
 
 const props = defineProps<{
-    content: string
-    viewMode: ViewMode
-    renderedHtml: string | Promise<string>
-}>()
+    content: string;
+    viewMode: ViewMode;
+    renderedHtml: string | Promise<string>;
+}>();
 
 const emit = defineEmits<{
-    'editor-ready': [element: HTMLElement]
-    input: []
-    beforeinput: [event: InputEvent]
-    paste: [event: ClipboardEvent]
-    keydown: [event: KeyboardEvent]
-    click: [event: MouseEvent]
-}>()
+    'editor-ready': [element: HTMLElement];
+    input: [];
+    beforeinput: [event: InputEvent];
+    paste: [event: ClipboardEvent];
+    keydown: [event: KeyboardEvent];
+    click: [event: MouseEvent];
+}>();
 
-const editor = ref<HTMLElement | null>(null)
+const editor = ref<HTMLElement | null>(null);
 
 onMounted(() => {
-    if (!editor.value) return
+    if (!editor.value) return;
 
-    editor.value.innerHTML = props.content
-    emit('editor-ready', editor.value)
-})
+    editor.value.innerHTML = props.content;
+    emit('editor-ready', editor.value);
+});
 
 watch(
     () => props.content,
-    async newContent => {
-        await nextTick()
+    async (newContent) => {
+        await nextTick();
 
-        if (!editor.value) return
-        if (editor.value.innerHTML === newContent) return
+        if (!editor.value) return;
+        if (editor.value.innerHTML === newContent) return;
 
-        editor.value.innerHTML = newContent
+        editor.value.innerHTML = newContent;
     }
-)
+);
 </script>
 
 <template>
@@ -63,7 +63,10 @@ watch(
             id="render"
             class="p-6 flex-1 min-w-0 min-h-full"
         >
-            <div class="prose max-w-none dark:prose-invert" v-html="renderedHtml"></div>
+            <div
+                class="prose max-w-none dark:prose-invert"
+                v-html="renderedHtml"
+            ></div>
         </section>
     </div>
 </template>

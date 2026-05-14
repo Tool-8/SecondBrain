@@ -7,7 +7,9 @@ import { RouterView } from 'vue-router';
     <div class="flex min-h-screen">
         <AppSidebar />
 
-        <main class="flex flex-col flex-1 h-dvh bg-white overflow-y-auto overflow-x-clip dark:bg-neutral-900 dark:text-gray-50">
+        <main
+            class="flex flex-col flex-1 h-dvh bg-white overflow-y-auto overflow-x-clip dark:bg-neutral-900 dark:text-gray-50"
+        >
             <RouterView :key="$route.fullPath" />
         </main>
     </div>
