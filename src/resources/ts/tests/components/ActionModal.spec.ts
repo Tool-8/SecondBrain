@@ -19,12 +19,14 @@ describe('ActionModal', () =>  {
                     };
                     }
                 },
-                BaseModal: true
+                BaseModal: {
+                    template: ' <div> <slot name="body" /> <slot name="footer" /> </div>' 
+                }
                 }
             }
             });
 
-        const input = wrapper.find('input[type="text"]');
+        const input = wrapper.find('input');
         await input.setValue('Nuovo nome');
 
         const button = wrapper.findAll('button').find(b => b.text() === 'OK')
